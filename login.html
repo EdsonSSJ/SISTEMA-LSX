@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema Financeiro LSX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-10 rounded-xl shadow-xl">
+            <div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-sky-600 dark:text-sky-400">
+                    Sistema Financeiro LSX
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                    Faça login para continuar
+                </p>
+            </div>
+            <!-- O container onde o botão do Google aparecerá -->
+            <div id="firebaseui-auth-container"></div>
+            <div id="loader" class="text-center">Carregando...</div>
+        </div>
+    </div>
+
+    <script>
+        // COLE O OBJETO firebaseConfig QUE VOCÊ COPIOU DO SITE DO FIREBASE AQUI
+        const firebaseConfig = {
+                apiKey: "FIREBASE_API_KEY",
+                authDomain: "FIREBASE_AUTH_DOMAIN",
+                projectId: "FIREBASE_PROJECT_ID",
+                storageBucket: "FIREBASE_STORAGE_BUCKET",
+                messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
+                appId: "FIREBASE_APP_ID"
+        };
+        // Fim da área de colar
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Configuração do FirebaseUI
+        const uiConfig = {
+            callbacks: {
+                signInSuccessWithAuthResult: function(authResult, redirectUrl) {
+                    // O usuário fez login com sucesso.
+                    // Redireciona para a página principal.
+                    window.location.href = 'index.html';
+                    return false; // Evita o redirecionamento padrão do FirebaseUI.
+                },
+                uiShown: function() {
+                    // Oculta o loader quando a interface estiver pronta.
+                    document.getElementById('loader').style.display = 'none';
+                }
+            },
+            signInFlow: 'popup', // 'popup' para o fluxo de login em um pop-up.
+            signInOptions: [
+                // Configura o provedor de login do Google.
+                firebase.auth.GoogleAuthProvider.PROVIDER_ID
+            ],
+            // Termos de serviço e política de privacidade (opcional).
+            // tosUrl: '<your-tos-url>',
+            // privacyPolicyUrl: '<your-privacy-policy-url>'
+        };
+
+        // Inicializa a interface de autenticação do FirebaseUI.
+        const ui = new firebaseui.auth.AuthUI(firebase.auth());
+        ui.start('#firebaseui-auth-container', uiConfig);
+
+    </script>
+</body>
+</html>

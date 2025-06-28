@@ -1,0 +1,363 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Lançamentos</title>
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+    .chart { /* Esta classe é genérica para o tamanho do gráfico, pode permanecer */
+        width: 100%;
+        height: 350px;
+    }
+     /* Estilos para a tabela do Google Charts - Eles são aplicados via JS (cssClassNames) e não usam @apply */
+    .google-visualization-table-table {
+        width: 100%;
+        border-collapse: collapse;
+        /* Tailwind classes equivalentes seriam w-full border-collapse */
+    }
+    /* As classes abaixo são referenciadas no cssClassNames e podem ser customizadas aqui se necessário,
+       ou pode-se usar classes Tailwind diretamente no cssClassNames se forem simples. */
+    .google-visualization-table-th {
+        background-color: #f3f4f6; /* bg-gray-100 */
+        color: #1f2937; /* text-gray-800 */
+        padding: 0.5rem; /* p-2 */
+        border: 1px solid #d1d5db; /* border border-gray-300 */
+        text-align: left; /* text-left */
+        font-weight: 600; /* font-semibold */
+    }
+    .google-visualization-table-td {
+        padding: 0.5rem; /* p-2 */
+        border: 1px solid #d1d5db; /* border border-gray-300 */
+        color: #374151; /* text-gray-700 */
+    }
+    .google-visualization-table-tr-odd {
+        background-color: #f9fafb; /* bg-gray-50 */
+    }
+    .google-visualization-table-tr-hover {
+        background-color: #eff6ff; /* bg-blue-100 */
+    }
+  </style>
+  <script>
+    google.charts.load('current', {packages:['corechart','controls','table']});
+    google.charts.setOnLoadCallback(drawDashboard);
+
+    function drawDashboard() {
+      const SHEET_ID = '1TKHwP1wMWwMEQBWeqhs2I6hYWy6nhCsdp42Gt_56qbU'; // Mantenha seu ID da planilha
+      const GID = '0'; // Mantenha seu GID
+      const queryUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID}&tq=${encodeURIComponent('select A,B,C,D,E')}`;
+      // Colunas esperadas: A: Data, B: Nome, C: Tipo, D: Município, E: Valor
+
+      const query = new google.visualization.Query(queryUrl);
+      query.send(handleQueryResponse);
+    }
+
+    function handleQueryResponse(response) {
+        if (response.isError()) {
+            console.error('Erro ao carregar dados da planilha: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+            document.getElementById('dashboard_status').innerHTML = `<p class="text-red-500 text-center">Erro ao carregar dados: ${response.getMessage()}. Verifique se a planilha está compartilhada publicamente.</p>`;
+            return;
+        }
+
+        const rawDataTable = response.getDataTable();
+
+        if (rawDataTable.getNumberOfColumns() < 5) {
+            console.error('Número de colunas insuficiente. Esperado: Data, Nome, Tipo, Município, Valor.');
+            document.getElementById('dashboard_status').innerHTML = `<p class="text-red-500 text-center">Erro: A planilha não possui as colunas esperadas (Data, Nome, Tipo, Município, Valor).</p>`;
+            return;
+        }
+        
+        // Definindo os rótulos das colunas corretamente com base na ordem do SELECT
+        rawDataTable.setColumnLabel(0, 'Data');      // Coluna A
+        rawDataTable.setColumnLabel(1, 'Nome');      // Coluna B
+        rawDataTable.setColumnLabel(2, 'Tipo');      // Coluna C
+        rawDataTable.setColumnLabel(3, 'Município'); // Coluna D
+        rawDataTable.setColumnLabel(4, 'Valor');     // Coluna E
+
+
+        // Adicionar coluna Ano para filtro
+        const dataViewWithYear = new google.visualization.DataView(rawDataTable);
+        dataViewWithYear.setColumns([0, 1, 2, 3, 4, {
+            calc: function(dt, row) {
+                const dateVal = dt.getValue(row, 0);
+                return dateVal ? new Date(dateVal).getFullYear().toString() : null;
+            },
+            type: 'string',
+            label: 'Ano'
+        }]);
+
+
+        const numberFormatter = new google.visualization.NumberFormat({ prefix: 'R$ ', decimalSymbol: ',', groupingSymbol: '.', negativeColor: 'red', negativeParens: true });
+        numberFormatter.format(dataViewWithYear, 4); // Formata a coluna 'Valor' (índice 4)
+
+        const dashboard = new google.visualization.Dashboard(document.getElementById('dashboard_div_charts_area'));
+
+        // Controles de Filtro
+        const muniFilter = new google.visualization.ControlWrapper({
+            controlType: 'CategoryFilter',
+            containerId: 'muni_filter_div',
+            options: { filterColumnLabel: 'Município', ui: { caption: 'Todos Municípios', allowTyping: false, allowMultiple: true, selectedValuesLayout: 'belowStacked' }}
+        });
+
+        const tipoFilter = new google.visualization.ControlWrapper({
+            controlType: 'CategoryFilter',
+            containerId: 'tipo_filter_div',
+            options: { filterColumnLabel: 'Tipo', ui: { caption: 'Todos Tipos', allowTyping: false, allowMultiple: false }}
+        });
+
+        const anoFilter = new google.visualization.ControlWrapper({
+            controlType: 'CategoryFilter',
+            containerId: 'ano_filter_div',
+            options: { filterColumnLabel: 'Ano', ui: { caption: 'Todos Anos', allowTyping: false, allowMultiple: false }}
+        });
+
+        // Gráfico de Receita Mensal (Coluna)
+        const monthlyRevenueChart = new google.visualization.ChartWrapper({
+            chartType: 'ColumnChart',
+            containerId: 'monthly_revenue_chart_div',
+            options: {
+                title: 'Receita Mensal do Ano Atual',
+                legend: 'none',
+                hAxis: { title: 'Mês', textStyle: { color: '#4b5563' }, titleTextStyle: { color: '#4b5563' } }, // text-gray-600
+                vAxis: { title: 'Valor (R$)', format: 'R$ #,##0.00', textStyle: { color: '#4b5563' }, titleTextStyle: { color: '#4b5563' } },
+                colors: ['#34A853'], 
+                backgroundColor: 'transparent', // Fundo transparente para herdar do container
+                titleTextStyle: { color: '#1f2937', fontSize: 16 }, // text-gray-800
+                chartArea: { width: '80%', height: '70%' }
+            },
+            view: {
+                columns: [0, 4] 
+            }
+        });
+        
+        // Gráfico de Pizza: % Receita por Município
+        const revenuePieChart = new google.visualization.ChartWrapper({
+            chartType: 'PieChart',
+            containerId: 'revenue_pie_chart_div',
+            options: {
+                title: '% Receita por Município',
+                pieHole: 0.4,
+                legend: { position: 'right', textStyle: {fontSize: 12, color: '#4b5563'} }, // text-gray-600
+                tooltip: { text: 'percentage' },
+                colors: ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#FF6D00', '#46BDC6'],
+                backgroundColor: 'transparent',
+                titleTextStyle: { color: '#1f2937', fontSize: 16 }, // text-gray-800
+                pieSliceTextStyle: { color: '#ffffff' }, // text-white
+                chartArea: { width: '90%', height: '80%' }
+            }
+        });
+
+        // Gráfico de Pizza: % Despesa por Município
+        const expensePieChart = new google.visualization.ChartWrapper({
+            chartType: 'PieChart',
+            containerId: 'expense_pie_chart_div',
+            options: {
+                title: '% Despesa por Município',
+                pieHole: 0.4,
+                legend: { position: 'right', textStyle: {fontSize: 12, color: '#4b5563'} }, // text-gray-600
+                tooltip: { text: 'percentage' },
+                colors: ['#EA4335', '#FBBC05', '#4285F4', '#34A853', '#FF6D00', '#46BDC6'].reverse(),
+                backgroundColor: 'transparent',
+                titleTextStyle: { color: '#1f2937', fontSize: 16 }, // text-gray-800
+                pieSliceTextStyle: { color: '#ffffff' }, // text-white
+                chartArea: { width: '90%', height: '80%' }
+            }
+        });
+
+        // Tabela: Últimas Transações
+        const latestTransactionsTable = new google.visualization.ChartWrapper({
+            chartType: 'Table',
+            containerId: 'latest_transactions_table_div',
+            options: {
+                showRowNumber: true,
+                width: '100%',
+                height: '100%',
+                allowHtml: true,
+                sortColumn: 0, 
+                sortAscending: false, 
+                page: 'enable',
+                pageSize: 10,
+                 cssClassNames: { 
+                    headerRow: 'google-visualization-table-th',
+                    tableRow: '', // Deixe em branco para usar o padrão ou td
+                    oddTableRow: 'google-visualization-table-tr-odd',
+                    selectedTableRow: 'bg-sky-200 dark:bg-sky-600', // Tailwind direto
+                    hoverTableRow: 'google-visualization-table-tr-hover',
+                    headerCell: 'google-visualization-table-th',
+                    tableCell: 'google-visualization-table-td'
+                }
+            },
+            view: {
+                columns: [0, 1, 3, 2, 4] 
+            }
+        });
+        
+        dashboard.bind([muniFilter, tipoFilter, anoFilter], [monthlyRevenueChart, revenuePieChart, expensePieChart, latestTransactionsTable]);
+
+        google.visualization.events.addListener(dashboard, 'ready', function() {
+            const filteredData = dashboard.getDataTable(); 
+
+            const currentYear = anoFilter.getState()?.selectedValues?.[0] || new Date().getFullYear().toString();
+            monthlyRevenueChart.setOption('title', `Receita Mensal de ${currentYear}`);
+            
+            const monthlyRevenueDataView = new google.visualization.DataView(filteredData);
+            monthlyRevenueDataView.setRows(monthlyRevenueDataView.getFilteredRows([
+                {column: 2, value: 'Receita'}, 
+                {column: 5, value: currentYear.toString()} 
+            ]));
+
+            const groupedMonthlyRevenue = google.visualization.data.group(
+                monthlyRevenueDataView,
+                [{ column: 0, modifier: (date) => { const d = new Date(date); return d.toLocaleString('pt-BR', { month: 'short' }); }, type: 'string', label: 'Mês' }],
+                [{ column: 4, aggregation: google.visualization.data.sum, type: 'number', label: 'Receita' }]
+            );
+            if (groupedMonthlyRevenue.getNumberOfRows() === 0) {
+                 monthlyRevenueChart.setDataTable(google.visualization.arrayToDataTable([['Mês', 'Receita'], ['Nenhum dado', 0]]));
+            } else {
+                monthlyRevenueChart.setDataTable(groupedMonthlyRevenue);
+            }
+            monthlyRevenueChart.draw();
+
+            const revenueDataView = new google.visualization.DataView(filteredData);
+            revenueDataView.setRows(revenueDataView.getFilteredRows([{column: 2, value: 'Receita'}])); 
+            const groupedRevenue = google.visualization.data.group(
+                revenueDataView,
+                [3], 
+                [{column: 4, aggregation: google.visualization.data.sum, type: 'number', label: 'Total Receita'}]
+            );
+            numberFormatter.format(groupedRevenue, 1);
+             if (groupedRevenue.getNumberOfRows() === 0) {
+                revenuePieChart.setDataTable(google.visualization.arrayToDataTable([['Município', 'Receita'], ['Nenhum dado', 0]]));
+            } else {
+                revenuePieChart.setDataTable(groupedRevenue);
+            }
+            revenuePieChart.draw();
+
+            const expenseDataView = new google.visualization.DataView(filteredData);
+            expenseDataView.setRows(expenseDataView.getFilteredRows([{column: 2, value: 'Despesa'}])); 
+            const groupedExpense = google.visualization.data.group(
+                expenseDataView,
+                [3], 
+                [{column: 4, aggregation: google.visualization.data.sum, type: 'number', label: 'Total Despesa'}]
+            );
+            numberFormatter.format(groupedExpense, 1);
+            if (groupedExpense.getNumberOfRows() === 0) {
+                expensePieChart.setDataTable(google.visualization.arrayToDataTable([['Município', 'Despesa'], ['Nenhum dado', 0]]));
+            } else {
+                expensePieChart.setDataTable(groupedExpense);
+            }
+            expensePieChart.draw();
+
+            let totalReceitas = 0;
+            let totalDespesas = 0;
+            for (let i = 0; i < filteredData.getNumberOfRows(); i++) {
+                const tipo = filteredData.getValue(i, 2); 
+                const valor = filteredData.getValue(i, 4); 
+                if (tipo === 'Receita') {
+                    totalReceitas += valor;
+                } else if (tipo === 'Despesa') {
+                    totalDespesas += valor;
+                }
+            }
+            const saldoAtual = totalReceitas - totalDespesas;
+            document.getElementById('saldo_atual_valor').innerHTML = `Saldo: <span class="font-semibold ${saldoAtual >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${numberFormatter.formatValue(saldoAtual)}</span>`;
+            document.getElementById('total_receitas_valor').innerHTML = `Total Receitas: <span class="font-semibold text-green-600 dark:text-green-400">${numberFormatter.formatValue(totalReceitas)}</span>`;
+            document.getElementById('total_despesas_valor').innerHTML = `Total Despesas: <span class="font-semibold text-red-600 dark:text-red-400">${numberFormatter.formatValue(totalDespesas)}</span>`;
+
+            latestTransactionsTable.setDataTable(filteredData);
+            latestTransactionsTable.draw();
+
+            document.getElementById('dashboard_status').innerHTML = ''; 
+        });
+
+        dashboard.draw(dataViewWithYear);
+        document.getElementById('dashboard_status').innerHTML = '<p class="text-sky-600 dark:text-sky-400 text-center animate-pulse">Carregando dashboard...</p>';
+    }
+  </script>
+  <style>
+    body { display: none; } /* Esconde o corpo da página por padrão */
+</style>
+<!-- Script de proteção -->
+<script>
+    if (sessionStorage.getItem('loggedIn') !== 'true') {
+        window.location.href = 'login.html';
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.style.display = 'block'; // Mostra a página se estiver logado
+        });
+    }
+</script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 p-4 md:p-6">
+  <div class="container mx-auto">
+    <header class="mb-6 flex flex-col sm:flex-row justify-between items-center">
+        <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400 mb-4 sm:mb-0">Dashboard de Lançamentos</h1>
+        <a href="index.html" class="bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-150 ease-in-out">
+            &larr; Voltar ao Menu Principal
+        </a>
+    </header>
+
+    <div id="dashboard_status" class="mb-4 min-h-[24px]"></div>
+
+    <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-4 md:p-6 mb-6 flex flex-col sm:flex-row gap-4 justify-around items-center">
+      <div id="muni_filter_div" class="w-full sm:w-auto sm:min-w-[200px] text-sm"></div>
+      <div id="tipo_filter_div" class="w-full sm:w-auto sm:min-w-[200px] text-sm"></div>
+      <div id="ano_filter_div" class="w-full sm:w-auto sm:min-w-[200px] text-sm"></div>
+    </div>
+
+    <div id="dashboard_div_charts_area" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-4 md:p-6 md:col-span-2">
+        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4 text-center">Receita Mensal</h3>
+        <div id="monthly_revenue_chart_div" class="chart"></div>
+      </div>
+      <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-4 md:p-6">
+        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4 text-center">% Receita por Município</h3>
+        <div id="revenue_pie_chart_div" class="chart"></div>
+      </div>
+      <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-4 md:p-6">
+        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4 text-center">% Despesa por Município</h3>
+        <div id="expense_pie_chart_div" class="chart"></div>
+      </div>
+      <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-4 md:p-6 md:col-span-2">
+        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4 text-center">Resumo Financeiro</h3>
+        <div class="text-center space-y-3 text-lg text-gray-600 dark:text-gray-300">
+            <p id="total_receitas_valor">Total Receitas: <span class="font-semibold text-gray-500 dark:text-gray-400">Calculando...</span></p>
+            <p id="total_despesas_valor">Total Despesas: <span class="font-semibold text-gray-500 dark:text-gray-400">Calculando...</span></p>
+            <p id="saldo_atual_valor" class="text-xl">Saldo: <span class="font-bold text-gray-500 dark:text-gray-400">Calculando...</span></p>
+        </div>
+      </div>
+      <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-4 md:p-6 md:col-span-2">
+        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4 text-center">Últimas Transações</h3>
+        <div id="latest_transactions_table_div" style="height: 450px;"></div> </div>
+    </div>
+     <footer class="mt-12 mb-6 text-center text-gray-500 dark:text-gray-400 text-sm">
+        <p>&copy; <span id="currentYearFooter"></span> Seu Nome/Empresa. Todos os direitos reservados.</p>
+    </footer>
+  </div>
+   <script>
+        document.getElementById('currentYearFooter').textContent = new Date().getFullYear();
+        // Pequeno ajuste para garantir que os controles de filtro tenham uma boa aparência no tema escuro
+        const observer = new MutationObserver(function(mutationsList, observer) {
+            for(const mutation of mutationsList) {
+                if (mutation.type === 'childList') {
+                    const controls = document.querySelectorAll('.google-visualization-controls-categoryfilter');
+                    controls.forEach(control => {
+                        control.style.backgroundColor = 'transparent'; // Evitar fundo branco do Google Charts sobre o tema escuro
+                        const labels = control.querySelectorAll('label');
+                        labels.forEach(label => label.style.color = document.body.classList.contains('dark:bg-gray-900') || window.matchMedia('(prefers-color-scheme: dark)').matches ? '#d1d5db' : '#374151'); // text-gray-300 ou text-gray-700
+                    });
+                }
+            }
+        });
+        observer.observe(document.getElementById('muni_filter_div'), { childList: true, subtree: true });
+        observer.observe(document.getElementById('tipo_filter_div'), { childList: true, subtree: true });
+        observer.observe(document.getElementById('ano_filter_div'), { childList: true, subtree: true });
+    </script>
+</body>
+</html>
