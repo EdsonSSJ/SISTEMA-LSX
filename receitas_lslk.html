@@ -3,39 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receitas LS/LK</title>
+    <title>Lançamento de Receitas LS/LK</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        body { font-family: 'Inter', sans-serif; display: none; }
+        /* Estilos para a lista de autocomplete */
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 210px;
+            overflow-y: auto;
+        }
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff; /* bg-white */
+        }
+        .autocomplete-items div:hover {
+            background-color: #e5e7eb; /* bg-gray-200 */
+        }
+        .autocomplete-active {
+            background-color: #3b82f6 !important; /* bg-blue-500 */
+            color: #fff;
         }
     </style>
-    <style>
-    body { display: none; } /* Esconde o corpo da página por padrão */
-</style>
-<!-- Script de proteção -->
-<script>
-    if (sessionStorage.getItem('loggedIn') !== 'true') {
-        window.location.href = 'login.html';
-    } else {
-        document.addEventListener('DOMContentLoaded', function() {
-            document.body.style.display = 'block'; // Mostra a página se estiver logado
+    <script>
+        // COLE O SEU OBJETO firebaseConfig AQUI
+        const firebaseConfig = {
+          apiKey: "FIREBASE_API_KEY",
+          authDomain: "FIREBASE_AUTH_DOMAIN",
+          projectId: "FIREBASE_PROJECT_ID",
+          storageBucket: "FIREBASE_STORAGE_BUCKET",
+          messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
+          appId: "FIREBASE_APP_ID"
+        };
+        // Fim da área de colar
+
+        firebase.initializeApp(firebaseConfig);
+
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                document.getElementById('usuarioEmail').value = user.email;
+                document.body.style.display = 'block';
+            } else {
+                const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
+                window.location.href = newUrl;
+            }
         });
-    }
-</script>
+    </script>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="container mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
-        <header class="mb-6 text-center">
-            <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Receitas LS/LK</h1>
-            <a href="index.html" class="text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 mt-2 inline-block">&larr; Voltar ao Menu Principal</a>
-        </header>
-        <main>
-            <p class="text-gray-700 dark:text-gray-300">
-                Esta seção será utilizada para o registro e acompanhamento de receitas LS (Lucro Simples) e LK (Lucro Presumido/Real).
-                </p>
-        </main>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div class="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
+        <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8">
+            <header class="mb-8 text-center">
+                <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Lançamento de Receitas LS/LK</h1>
+                <p class="text-gray-500 dark:text-gray-400 mt-2">Preencha os dados da receita abaixo.</p>
+            </header>
+            
+            <iframe name="hidden_iframe_receitas" id="hidden_iframe_receitas" style="display:none;"></iframe>
+
+            <form id="receitaForm"
+                  action="https://script.google.com/macros/s/AKfycbwYrYqP7HI-SBlYLsCPegvlguHX5lVmKgaLGf1L7nIsqlJcpVOeXXnSW1PZPF53rtVW/exec" 
+                  method="POST" 
+                  target="hidden_iframe_receitas"
+                  class="space-y-6">
+                
+                <input type="hidden" name="formType" value="receitaLSLK">
+                <input type="hidden" name="usuarioEmail" id="usuarioEmail" value="">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="data" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data</label>
+                        <input type="date" name="data" id="data" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                    </div>
+                     <div>
+                        <label for="tipo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+                        <select name="tipo" id="tipo" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                            <option value="" disabled selected>-- Selecione um Tipo --</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Fechamento">Fechamento</option>
+                            <option value="Imposto">Imposto</option>
+                            <option value="INSS">INSS</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="beneficiario" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Beneficiário</label>
+                    <select name="beneficiario" id="beneficiario" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                         <option value="" disabled selected>-- Selecione um Beneficiário --</option>
+                         <option value="Gestão">Gestão</option>
+                         <option value="LK">LK</option>
+                         <option value="LS">LS</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div>
+                        <label for="valor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor</label>
+                        <input type="text" name="valor" id="valor" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" placeholder="0,00" required>
+                    </div>
+                    <div class="relative">
+                        <label for="municipio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Município</label>
+                        <input autocomplete="off" name="municipio" id="municipio" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <div id="municipios-lista" class="autocomplete-items"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="valor_nf" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor NF</label>
+                    <input type="text" name="valor_nf" id="valor_nf" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" placeholder="0,00">
+                </div>
+                
+                <div class="pt-4">
+                    <button type="submit" id="submitButton" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">Registrar Receita</button>
+                </div>
+            </form>
+            
+            <div id="statusMessage" class="mt-6 text-center text-sm font-medium"></div>
+
+            <div class="mt-8 text-center">
+                 <a href="index.html" class="text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">&larr; Voltar ao Menu Principal</a>
+            </div>
+        </div>
     </div>
+    <script>
+        const form = document.getElementById('receitaForm');
+        const statusMessage = document.getElementById('statusMessage');
+        const submitButton = document.getElementById('submitButton');
+        const hiddenIframe = document.getElementById('hidden_iframe_receitas');
+
+        hiddenIframe.addEventListener('load', () => {
+            statusMessage.textContent = 'Receita registrada com sucesso!';
+            statusMessage.className = 'mt-6 text-center text-sm font-medium text-green-600';
+            form.reset();
+            document.getElementById('data').valueAsDate = new Date();
+            submitButton.disabled = false;
+            submitButton.textContent = 'Registrar Receita';
+            
+            setTimeout(() => {
+                statusMessage.textContent = '';
+            }, 5000);
+        });
+
+        form.addEventListener('submit', () => {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+            statusMessage.textContent = '';
+        });
+
+        function formatCurrency(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = (value / 100).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).replace('R$', '').trim();
+            e.target.value = value;
+        }
+
+        document.getElementById('valor').addEventListener('input', formatCurrency);
+        document.getElementById('valor_nf').addEventListener('input', formatCurrency);
+        document.getElementById('data').valueAsDate = new Date();
+
+        // --- Lógica para Autocomplete dos Municípios ---
+        const municipioInput = document.getElementById('municipio');
+        const suggestionsList = document.getElementById('municipios-lista');
+        let municipios = [];
+
+        // Busca a lista de municípios da API do IBGE ao carregar a página
+        fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome')
+            .then(response => response.json())
+            .then(data => {
+                municipios = data.map(municipio => municipio.nome);
+            })
+            .catch(error => console.error('Erro ao buscar municípios:', error));
+
+        municipioInput.addEventListener('input', function() {
+            const inputText = this.value.toLowerCase();
+            suggestionsList.innerHTML = ''; // Limpa sugestões anteriores
+            if (!inputText) return;
+
+            const suggestions = municipios.filter(municipio => 
+                municipio.toLowerCase().startsWith(inputText)
+            );
+
+            suggestions.forEach(suggestion => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.textContent = suggestion;
+                suggestionItem.addEventListener('click', function() {
+                    municipioInput.value = this.textContent;
+                    suggestionsList.innerHTML = '';
+                });
+                suggestionsList.appendChild(suggestionItem);
+            });
+        });
+
+        // Fecha a lista de sugestões se o usuário clicar fora dela
+        document.addEventListener('click', function(e) {
+            if (e.target !== municipioInput) {
+                suggestionsList.innerHTML = '';
+            }
+        });
+
+    </script>
 </body>
 </html>
