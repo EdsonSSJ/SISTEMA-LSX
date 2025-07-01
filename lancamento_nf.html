@@ -12,25 +12,24 @@
         body { font-family: 'Inter', sans-serif; display: none; }
     </style>
     <script>
-        
+        // COLE O SEU OBJETO firebaseConfig AQUI
         const firebaseConfig = {
-                apiKey: "FIREBASE_API_KEY",
-                authDomain: "FIREBASE_AUTH_DOMAIN",
-                projectId: "FIREBASE_PROJECT_ID",
-                storageBucket: "FIREBASE_STORAGE_BUCKET",
-                messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
-                appId: "FIREBASE_APP_ID"
+          apiKey: "FIREBASE_API_KEY",
+          authDomain: "FIREBASE_AUTH_DOMAIN",
+          projectId: "FIREBASE_PROJECT_ID",
+          storageBucket: "FIREBASE_STORAGE_BUCKET",
+          messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
+          appId: "FIREBASE_APP_ID"
         };
-    
+
         firebase.initializeApp(firebaseConfig);
 
         firebase.auth().onAuthStateChanged(function(user) {
             if (user) {
-                // Usuário está logado. Guarda os dados e mostra a página.
                 document.getElementById('usuarioEmail').value = user.email;
                 document.body.style.display = 'block';
+                fetchContractList();
             } else {
-                // Nenhum usuário logado. Redireciona para o login.
                 const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
                 window.location.href = newUrl;
             }
@@ -42,7 +41,6 @@
         <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8">
             <header class="mb-8 text-center">
                 <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Lançamento de Nota Fiscal</h1>
-                <p class="text-gray-500 dark:text-gray-400 mt-2">Preencha os dados da nota fiscal abaixo.</p>
             </header>
             
             <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
@@ -54,86 +52,159 @@
                   class="space-y-6">
                 
                 <input type="hidden" name="formType" value="notaFiscal">
-                <!-- Campo oculto para enviar o email do usuário -->
                 <input type="hidden" name="usuarioEmail" id="usuarioEmail" value="">
 
-                <!-- Restante do formulário... -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="empresa_emissora" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome da Empresa Emissora</label>
-                        <input type="text" name="empresa_emissora" id="empresa_emissora" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <input type="text" name="empresa_emissora" id="empresa_emissora" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
                     </div>
                     <div>
                         <label for="cnpj_emissor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CNPJ da Empresa Emissora</label>
-                        <input type="text" name="cnpj_emissor" id="cnpj_emissor" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="numero_nf" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número da NF</label>
-                        <input type="text" name="numero_nf" id="numero_nf" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
-                    </div>
-                    <div>
-                        <label for="valor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor (R$)</label>
-                        <input type="text" name="valor" id="valor" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" placeholder="0,00" required>
+                        <input type="text" name="cnpj_emissor" id="cnpj_emissor" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="cliente_fornecedor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cliente / Fornecedor</label>
-                        <input type="text" name="cliente_fornecedor" id="cliente_fornecedor" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <input type="text" name="cliente_fornecedor" id="cliente_fornecedor" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
                     </div>
                      <div>
                         <label for="cnpj_cpf_cliente" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CNPJ / CPF do Cliente</label>
-                        <input type="text" name="cnpj_cpf_cliente" id="cnpj_cpf_cliente" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200">
+                        <input type="text" name="cnpj_cpf_cliente" id="cnpj_cpf_cliente" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
                     </div>
                 </div>
                 
-                <div>
-                    <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descrição dos Serviços/Produtos</label>
-                    <textarea name="descricao" id="descricao" rows="3" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200"></textarea>
+                 <div>
+                    <label for="numero_contrato" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nº do Contrato</label>
+                    <select name="numero_contrato" id="numero_contrato" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
+                        <option value="">-- Selecione um Contrato --</option>
+                    </select>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="data_emissao" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Emissão</label>
-                        <input type="date" name="data_emissao" id="data_emissao" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <label for="numero_nf" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número da NF</label>
+                        <input type="text" name="numero_nf" id="numero_nf" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
                     </div>
                     <div>
-                        <label for="data_pagamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Pagamento</label>
-                        <input type="date" name="data_pagamento" id="data_pagamento" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200">
+                        <label for="valor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor da NF (R$)</label>
+                        <input type="text" name="valor" id="valor" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" placeholder="0,00" required>
                     </div>
+                </div>
+
+                 <div>
+                    <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descrição dos Serviços/Produtos</label>
+                    <textarea name="descricao" id="descricao" rows="3" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"></textarea>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
+                        <label for="data_emissao" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Emissão</label>
+                        <input type="date" name="data_emissao" id="data_emissao" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
+                    </div>
+                    <div>
+                        <label for="data_pagamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Pagamento</label>
+                        <input type="date" name="data_pagamento" id="data_pagamento" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
+                    </div>
+                </div>
+
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
                         <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status do Pagamento</label>
-                        <select name="status" id="status" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <select name="status" id="status" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
                             <option value="A Pagar">A Pagar</option>
                             <option value="Paga">Paga</option>
                             <option value="Vencida">Vencida</option>
                         </select>
                     </div>
                      <div>
-                        <label for="link_pdf" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link para o Documento (PDF na nuvem)</label>
-                        <input type="url" name="link_pdf" id="link_pdf" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" placeholder="https://">
+                        <label for="link_pdf" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link para o Documento (PDF)</label>
+                        <input type="url" name="link_pdf" id="link_pdf" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" placeholder="https://">
                     </div>
                 </div>
                 
                 <div class="pt-4">
-                    <button type="submit" id="submitButton" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">Registrar Nota Fiscal</button>
+                    <button type="submit" id="submitButton" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700">Lançar Nota Fiscal</button>
                 </div>
             </form>
             
             <div id="statusMessage" class="mt-6 text-center text-sm font-medium"></div>
 
             <div class="mt-8 text-center">
-                 <a href="index.html" class="text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">&larr; Voltar ao Menu Principal</a>
+                 <a href="index.html" class="text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300">&larr; Voltar ao Menu Principal</a>
             </div>
         </div>
     </div>
-    <!-- Scripts dos formulários -->
+    <script>
+        const SCRIPT_URL_NF = "https://script.google.com/macros/s/AKfycbwYrYqP7HI-SBlYLsCPegvlguHX5lVmKgaLGf1L7nIsqlJcpVOeXXnSW1PZPF53rtVW/exec";
+        const formNf = document.getElementById('notaFiscalForm');
+        const statusMessageNf = document.getElementById('statusMessage');
+        const submitButtonNf = document.getElementById('submitButton');
+        const hiddenIframeNf = document.getElementById('hidden_iframe');
+
+        hiddenIframeNf.addEventListener('load', () => {
+            statusMessageNf.textContent = 'Nota Fiscal lançada com sucesso!';
+            statusMessageNf.className = 'mt-6 text-center text-sm font-medium text-green-600';
+            formNf.reset();
+            document.getElementById('data_emissao').valueAsDate = new Date();
+            submitButtonNf.disabled = false;
+            submitButtonNf.textContent = 'Lançar Nota Fiscal';
+            
+            setTimeout(() => { statusMessageNf.textContent = ''; }, 5000);
+        });
+
+        formNf.addEventListener('submit', () => {
+            submitButtonNf.disabled = true;
+            submitButtonNf.textContent = 'Enviando...';
+            statusMessageNf.textContent = '';
+        });
+
+        document.getElementById('valor').addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            value = (value / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace('R$', '').trim();
+            e.target.value = value;
+        });
+        
+        function applyCnpjCpfMask(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 14) value = value.substring(0, 14);
+            if (value.length > 11) {
+                value = value.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2}).*/, '$1.$2.$3/$4-$5');
+            } else {
+                value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
+            }
+            e.target.value = value;
+        }
+        
+        document.getElementById('cnpj_emissor').addEventListener('input', applyCnpjCpfMask);
+        document.getElementById('cnpj_cpf_cliente').addEventListener('input', applyCnpjCpfMask);
+        document.getElementById('data_emissao').valueAsDate = new Date();
+
+        function fetchContractList() {
+            const selectContrato = document.getElementById('numero_contrato');
+            fetch(SCRIPT_URL_NF + "?action=getContractList")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+                    
+                    data.forEach(contrato => {
+                        const option = document.createElement('option');
+                        option.value = contrato.NumeroContrato;
+                        option.textContent = contrato.NumeroContrato;
+                        selectContrato.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar lista de contratos:', error);
+                    const option = document.createElement('option');
+                    option.textContent = 'Erro ao carregar contratos';
+                    option.disabled = true;
+                    selectContrato.appendChild(option);
+                });
+        }
+    </script>
 </body>
 </html>
+

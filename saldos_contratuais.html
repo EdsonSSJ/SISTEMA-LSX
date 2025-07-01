@@ -5,37 +5,226 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saldos Contratuais</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        body { font-family: 'Inter', sans-serif; display: none; }
+        .table-cell { @apply px-6 py-4 whitespace-nowrap text-sm; }
+        .autocomplete-items { position: absolute; border: 1px solid #d1d5db; border-top: none; z-index: 99; top: 100%; left: 0; right: 0; max-height: 210px; overflow-y: auto; }
+        .autocomplete-items div { padding: 10px; cursor: pointer; background-color: #fff; }
+        .autocomplete-items div:hover { background-color: #e5e7eb; }
     </style>
-    <style>
-    body { display: none; } /* Esconde o corpo da página por padrão */
-</style>
-<!-- Script de proteção -->
-<script>
-    if (sessionStorage.getItem('loggedIn') !== 'true') {
-        window.location.href = 'login.html';
-    } else {
-        document.addEventListener('DOMContentLoaded', function() {
-            document.body.style.display = 'block'; // Mostra a página se estiver logado
+    <script>
+        // COLE O SEU OBJETO firebaseConfig AQUI
+        const firebaseConfig = {
+          apiKey: "FIREBASE_API_KEY",
+          authDomain: "FIREBASE_AUTH_DOMAIN",
+          projectId: "FIREBASE_PROJECT_ID",
+          storageBucket: "FIREBASE_STORAGE_BUCKET",
+          messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
+          appId: "FIREBASE_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                document.getElementById('usuarioEmail').value = user.email;
+                document.body.style.display = 'block';
+                fetchContractData();
+            } else {
+                const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
+                window.location.href = newUrl;
+            }
         });
-    }
-</script>
+    </script>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="container mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
-        <header class="mb-6 text-center">
-            <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Saldos Contratuais</h1>
-            <a href="index.html" class="text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 mt-2 inline-block">&larr; Voltar ao Menu Principal</a>
-        </header>
-        <main>
-            <p class="text-gray-700 dark:text-gray-300">
-                Esta seção será utilizada para o acompanhamento de saldos contratuais.
-                </p>
-        </main>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Formulário para Adicionar Novo Contrato -->
+        <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8 mb-10">
+            <header class="mb-8 text-center">
+                <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Cadastro de Novo Contrato</h1>
+            </header>
+            
+            <iframe name="hidden_iframe_contratos" id="hidden_iframe_contratos" style="display:none;"></iframe>
+
+            <form id="contratoForm"
+                  action="https://script.google.com/macros/s/AKfycbwYrYqP7HI-SBlYLsCPegvlguHX5lVmKgaLGf1L7nIsqlJcpVOeXXnSW1PZPF53rtVW/exec" 
+                  method="POST" 
+                  target="hidden_iframe_contratos"
+                  class="space-y-6">
+                
+                <input type="hidden" name="formType" value="novoContrato">
+                <input type="hidden" name="usuarioEmail" id="usuarioEmail" value="">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="numero_contrato" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nº do Contrato</label>
+                        <input type="text" name="numero_contrato" id="numero_contrato" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                    </div>
+                    <div class="relative">
+                        <label for="municipio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Município</label>
+                        <input autocomplete="off" name="municipio" id="municipio" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <div id="municipios-lista" class="autocomplete-items"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="valor_global" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor Global (R$)</label>
+                        <input type="text" name="valor_global" id="valor_global" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" placeholder="0,00" required>
+                    </div>
+                    <div>
+                        <label for="data_inicio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Início</label>
+                        <input type="date" name="data_inicio" id="data_inicio" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                    </div>
+                     <div>
+                        <label for="validade" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Validade (meses)</label>
+                        <input type="number" name="validade" id="validade" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                    </div>
+                </div>
+                
+                <div class="pt-4">
+                    <button type="submit" id="submitButton" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">Adicionar Contrato</button>
+                </div>
+            </form>
+            <div id="statusMessage" class="mt-6 text-center text-sm font-medium"></div>
+        </div>
+
+        <!-- Tabela de Visualização de Saldos Contratuais -->
+        <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8">
+            <header class="mb-8 text-center">
+                <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Visualização de Saldos Contratuais</h1>
+            </header>
+            <div id="table-loader" class="text-center text-gray-500 dark:text-gray-400">Carregando saldos...</div>
+            <div class="overflow-x-auto">
+                <table id="contratosTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 hidden">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nº Contrato</th>
+                            <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Valor Global</th>
+                            <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Valor Gasto (NFs)</th>
+                            <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Saldo Remanescente</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contratosTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- Linhas serão inseridas aqui via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="mt-8 text-center">
+             <a href="index.html" class="text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">&larr; Voltar ao Menu Principal</a>
+        </div>
     </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYrYqP7HI-SBlYLsCPegvlguHX5lVmKgaLGf1L7nIsqlJcpVOeXXnSW1PZPF53rtVW/exec";
+        const form = document.getElementById('contratoForm');
+        const statusMessage = document.getElementById('statusMessage');
+        const submitButton = document.getElementById('submitButton');
+        const hiddenIframe = document.getElementById('hidden_iframe_contratos');
+
+        hiddenIframe.addEventListener('load', () => {
+            statusMessage.textContent = 'Contrato adicionado com sucesso!';
+            statusMessage.className = 'mt-6 text-center text-sm font-medium text-green-600';
+            form.reset();
+            document.getElementById('data_inicio').valueAsDate = new Date();
+            submitButton.disabled = false;
+            submitButton.textContent = 'Adicionar Contrato';
+            fetchContractData(); // Atualiza a tabela após adicionar
+            
+            setTimeout(() => { statusMessage.textContent = ''; }, 5000);
+        });
+
+        form.addEventListener('submit', () => {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+            statusMessage.textContent = '';
+        });
+
+        document.getElementById('valor_global').addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            value = (value / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace('R$', '').trim();
+            e.target.value = value;
+        });
+
+        document.getElementById('data_inicio').valueAsDate = new Date();
+
+        function formatCurrency(value) {
+            return parseFloat(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function fetchContractData() {
+            const tableLoader = document.getElementById('table-loader');
+            const table = document.getElementById('contratosTable');
+            const tableBody = document.getElementById('contratosTableBody');
+            
+            tableLoader.style.display = 'block';
+            table.classList.add('hidden');
+            tableBody.innerHTML = '';
+
+            fetch(SCRIPT_URL + "?action=getContractBalances")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+                    
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        const saldoClass = row.SaldoRemanescente < 0 ? 'text-red-500' : 'text-green-500';
+
+                        tr.innerHTML = `
+                            <td class="table-cell text-gray-900 dark:text-white">${row.NumeroContrato}</td>
+                            <td class="table-cell text-gray-500 dark:text-gray-300">${formatCurrency(row.ValorGlobal)}</td>
+                            <td class="table-cell text-gray-500 dark:text-gray-300">${formatCurrency(row.ValorGasto)}</td>
+                            <td class="table-cell font-semibold ${saldoClass}">${formatCurrency(row.SaldoRemanescente)}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                    
+                    tableLoader.style.display = 'none';
+                    table.classList.remove('hidden');
+                })
+                .catch(error => {
+                    tableLoader.textContent = `Erro ao carregar saldos: ${error.message}`;
+                    console.error('Erro:', error);
+                });
+        }
+        
+        // --- Lógica para Autocomplete dos Municípios ---
+        const municipioInput = document.getElementById('municipio');
+        const suggestionsList = document.getElementById('municipios-lista');
+        let municipios = [];
+
+        fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome')
+            .then(response => response.json())
+            .then(data => {
+                municipios = data.map(municipio => municipio.nome);
+            })
+            .catch(error => console.error('Erro ao buscar municípios:', error));
+
+        municipioInput.addEventListener('input', function() {
+            const inputText = this.value.toLowerCase();
+            suggestionsList.innerHTML = '';
+            if (!inputText) return;
+
+            const suggestions = municipios.filter(m => m.toLowerCase().startsWith(inputText));
+            suggestions.forEach(suggestion => {
+                const item = document.createElement('div');
+                item.textContent = suggestion;
+                item.addEventListener('click', () => {
+                    municipioInput.value = suggestion;
+                    suggestionsList.innerHTML = '';
+                });
+                suggestionsList.appendChild(item);
+            });
+        });
+
+        document.addEventListener('click', e => {
+            if (e.target !== municipioInput) suggestionsList.innerHTML = '';
+        });
+    </script>
 </body>
 </html>
