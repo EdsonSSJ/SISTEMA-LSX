@@ -127,6 +127,29 @@
             <header class="mb-8 text-center">
                 <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Itens Registrados</h1>
             </header>
+
+            <!-- Filtros de Pesquisa -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-end">
+                <div>
+                    <label for="searchDescricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pesquisar por Descrição</label>
+                    <input type="text" id="searchDescricao" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div>
+                    <label for="filterStatus" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar por Status</label>
+                    <select id="filterStatus" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                        <option value="">Todos</option>
+                        <option>Disponível</option>
+                        <option>Em Uso</option>
+                        <option>Em Manutenção</option>
+                        <option>Baixado</option>
+                    </select>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="searchButton" class="w-full flex justify-center py-2 px-4 border rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700">Pesquisar</button>
+                    <button id="clearButton" class="w-full flex justify-center py-2 px-4 border rounded-md shadow-sm text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300">Limpar</button>
+                </div>
+            </div>
+
             <div id="table-loader" class="text-center text-gray-500 dark:text-gray-400">Carregando inventário...</div>
             <div class="overflow-x-auto">
                 <table id="inventoryTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 hidden">
@@ -155,6 +178,8 @@
         const statusMessage = document.getElementById('statusMessage');
         const submitButton = document.getElementById('submitButton');
         const hiddenIframe = document.getElementById('hidden_iframe_inventario');
+        
+        let fullInventoryData = []; // Armazena todos os dados para filtrar no cliente
 
         hiddenIframe.addEventListener('load', () => {
             statusMessage.textContent = 'Item adicionado com sucesso!';
@@ -181,38 +206,70 @@
 
         function fetchInventoryData() {
             const tableLoader = document.getElementById('table-loader');
-            const table = document.getElementById('inventoryTable');
-            const tableBody = document.getElementById('inventoryTableBody');
-            
             tableLoader.style.display = 'block';
-            table.classList.add('hidden');
-            tableBody.innerHTML = '';
+            document.getElementById('inventoryTable').classList.add('hidden');
 
             fetch(SCRIPT_URL + "?action=getInventory")
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) throw new Error(data.error);
-                    
-                    data.forEach(row => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td class="table-cell font-semibold text-gray-900 dark:text-white">${row.NumeroItem}</td>
-                            <td class="table-cell text-gray-500 dark:text-gray-300">${row.Descricao}</td>
-                            <td class="table-cell text-gray-500 dark:text-gray-300">${row.Responsavel}</td>
-                            <td class="table-cell text-gray-500 dark:text-gray-300">${row.Status}</td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
-                    
-                    tableLoader.style.display = 'none';
-                    table.classList.remove('hidden');
+                    fullInventoryData = data; // Salva os dados completos
+                    displayInventory(fullInventoryData); // Exibe todos os dados inicialmente
                 })
                 .catch(error => {
                     tableLoader.textContent = `Erro ao carregar inventário: ${error.message}`;
                     console.error('Erro:', error);
                 });
         }
+
+        function displayInventory(data) {
+            const tableLoader = document.getElementById('table-loader');
+            const table = document.getElementById('inventoryTable');
+            const tableBody = document.getElementById('inventoryTableBody');
+            tableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                tableLoader.textContent = 'Nenhum item encontrado.';
+                tableLoader.style.display = 'block';
+                table.classList.add('hidden');
+                return;
+            }
+            
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="table-cell font-semibold text-gray-900 dark:text-white">${row.NumeroItem}</td>
+                    <td class="table-cell text-gray-500 dark:text-gray-300">${row.Descricao}</td>
+                    <td class="table-cell text-gray-500 dark:text-gray-300">${row.Responsavel}</td>
+                    <td class="table-cell text-gray-500 dark:text-gray-300">${row.Status}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+            
+            tableLoader.style.display = 'none';
+            table.classList.remove('hidden');
+        }
         
+        // Lógica dos filtros
+        document.getElementById('searchButton').addEventListener('click', () => {
+            const searchDescricao = document.getElementById('searchDescricao').value.toLowerCase();
+            const filterStatus = document.getElementById('filterStatus').value;
+
+            const filteredData = fullInventoryData.filter(item => {
+                const descricaoMatch = item.Descricao.toLowerCase().includes(searchDescricao);
+                const statusMatch = filterStatus ? item.Status === filterStatus : true;
+                return descricaoMatch && statusMatch;
+            });
+
+            displayInventory(filteredData);
+        });
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            document.getElementById('searchDescricao').value = '';
+            document.getElementById('filterStatus').value = '';
+            displayInventory(fullInventoryData); // Exibe a lista completa novamente
+        });
+
         // --- Lógica para Autocomplete das Cidades ---
         const cidadeInput = document.getElementById('cidade');
         const suggestionsList = document.getElementById('cidades-lista');
@@ -245,4 +302,3 @@
     </script>
 </body>
 </html>
-
