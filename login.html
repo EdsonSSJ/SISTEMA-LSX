@@ -21,7 +21,7 @@
                 <h2 class="mt-6 text-center text-3xl font-extrabold text-sky-600 dark:text-sky-400">
                     Sistema Financeiro LSX
                 </h2>
-                <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                <p id="login-message" class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
                     Faça login para continuar
                 </p>
             </div>
@@ -34,43 +34,59 @@
     <script>
         // COLE O OBJETO firebaseConfig QUE VOCÊ COPIOU DO SITE DO FIREBASE AQUI
         const firebaseConfig = {
-                apiKey: "FIREBASE_API_KEY",
-                authDomain: "FIREBASE_AUTH_DOMAIN",
-                projectId: "FIREBASE_PROJECT_ID",
-                storageBucket: "FIREBASE_STORAGE_BUCKET",
-                messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
-                appId: "FIREBASE_APP_ID"
+            apiKey: "FIREBASE_API_KEY",
+            authDomain: "FIREBASE_AUTH_DOMAIN",
+            projectId: "FIREBASE_PROJECT_ID",
+            storageBucket: "FIREBASE_STORAGE_BUCKET",
+            messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
+            appId: "FIREBASE_APP_ID"
         };
-        // Fim da área de colar
+        
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYrYqP7HI-SBlYLsCPegvlguHX5lVmKgaLGf1L7nIsqlJcpVOeXXnSW1PZPF53rtVW/exec";
 
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
 
-        // Configuração do FirebaseUI
         const uiConfig = {
             callbacks: {
                 signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-                    // O usuário fez login com sucesso.
-                    // Redireciona para a página principal.
-                    window.location.href = 'index.html';
-                    return false; // Evita o redirecionamento padrão do FirebaseUI.
+                    const user = authResult.user;
+                    const loginMessage = document.getElementById('login-message');
+                    
+                    loginMessage.textContent = 'Verificando autorização...';
+                    
+                    // Verifica se o email do usuário está na lista de autorizados
+                    fetch(`${SCRIPT_URL}?action=checkAuth&email=${user.email}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.authorized) {
+                                // Usuário autorizado, redireciona para a página principal
+                                window.location.href = 'index.html';
+                            } else {
+                                // Usuário não autorizado
+                                loginMessage.textContent = 'Você não tem permissão para acessar este sistema.';
+                                loginMessage.classList.add('text-red-500');
+                                firebase.auth().signOut(); // Desloga o usuário
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro ao verificar autorização:', error);
+                            loginMessage.textContent = 'Erro ao verificar permissão. Tente novamente.';
+                            loginMessage.classList.add('text-red-500');
+                            firebase.auth().signOut();
+                        });
+
+                    return false; // Previne o redirecionamento automático do FirebaseUI
                 },
                 uiShown: function() {
-                    // Oculta o loader quando a interface estiver pronta.
                     document.getElementById('loader').style.display = 'none';
                 }
             },
-            signInFlow: 'popup', // 'popup' para o fluxo de login em um pop-up.
+            signInFlow: 'popup',
             signInOptions: [
-                // Configura o provedor de login do Google.
                 firebase.auth.GoogleAuthProvider.PROVIDER_ID
             ],
-            // Termos de serviço e política de privacidade (opcional).
-            // tosUrl: '<your-tos-url>',
-            // privacyPolicyUrl: '<your-privacy-policy-url>'
         };
 
-        // Inicializa a interface de autenticação do FirebaseUI.
         const ui = new firebaseui.auth.AuthUI(firebase.auth());
         ui.start('#firebaseui-auth-container', uiConfig);
 
