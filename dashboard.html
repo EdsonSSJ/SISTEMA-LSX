@@ -13,7 +13,7 @@
         body { font-family: 'Inter', sans-serif; display: none; }
         .kpi-card { @apply bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg text-center; }
         .kpi-title { @apply text-sm font-medium text-gray-500 dark:text-gray-400 uppercase; }
-        .kpi-value { @apply mt-1 text-3xl font-semibold text-gray-900 dark:text-white; }
+        .kpi-value { @apply mt-1 text-2xl font-semibold text-gray-900 dark:text-white; }
     </style>
     <script>
         // COLE O SEU OBJETO firebaseConfig AQUI
@@ -38,7 +38,7 @@
             }
         });
 
-        google.charts.load('current', {'packages':['corechart', 'table']});
+        google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(fetchDashboardData);
 
         function formatCurrency(value) {
@@ -46,79 +46,58 @@
         }
 
         function fetchDashboardData() {
-            if (!firebase.auth().currentUser) return; // Não busca os dados antes do login ser confirmado
+            if (!firebase.auth().currentUser) return;
 
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYrYqP7HI-SBlYLsCPegvlguHX5lVmKgaLGf1L7nIsqlJcpVOeXXnSW1PZPF53rtVW/exec";
             document.getElementById('loader').style.display = 'block';
 
-            fetch(SCRIPT_URL + "?action=getDashboardData")
+            fetch(SCRIPT_URL + "?action=getSegmentedDashboardData")
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) throw new Error(data.error);
                     
-                    drawKPIs(data.kpis);
-                    drawMonthlyChart(data.monthlyData);
-                    drawExpenseChart(data.expenseData);
+                    // Preenche a seção MDO
+                    document.getElementById('kpi-mdo-receitas').textContent = formatCurrency(data.mdo.totalReceitas);
+                    document.getElementById('kpi-mdo-despesas').textContent = formatCurrency(data.mdo.totalDespesas);
+                    document.getElementById('kpi-mdo-saldo').textContent = formatCurrency(data.mdo.saldo);
+                    drawChart('mdo_chart', 'Receitas vs. Despesas (MDO)', data.mdo.monthlyData);
+
+                    // Preenche a seção LS/LK
+                    document.getElementById('kpi-lslk-total').textContent = formatCurrency(data.lslk.total);
+                    drawChart('lslk_chart', 'Lançamentos por Mês (LS/LK)', data.lslk.monthlyData, ['#4f46e5', '#c084fc']); // Cores diferentes
 
                     document.getElementById('loader').style.display = 'none';
                 })
                 .catch(error => {
                     const loader = document.getElementById('loader');
-                    loader.textContent = `Erro ao carregar dados do dashboard: ${error.message}`;
+                    loader.textContent = `Erro ao carregar dados: ${error.message}`;
                     console.error('Erro:', error);
                 });
         }
 
-        function drawKPIs(kpis) {
-            document.getElementById('kpi-receitas').textContent = formatCurrency(kpis.totalReceitas);
-            document.getElementById('kpi-despesas').textContent = formatCurrency(kpis.totalDespesas);
-            const saldoElement = document.getElementById('kpi-saldo');
-            saldoElement.textContent = formatCurrency(kpis.saldo);
-            saldoElement.classList.toggle('text-red-500', kpis.saldo < 0);
-            saldoElement.classList.toggle('text-green-500', kpis.saldo >= 0);
-        }
-
-        function drawMonthlyChart(monthlyData) {
+        function drawChart(elementId, title, chartData, colors = ['#10b981', '#ef4444']) {
             const data = new google.visualization.DataTable();
             data.addColumn('string', 'Mês');
-            data.addColumn('number', 'Receitas');
-            data.addColumn('number', 'Despesas');
-            data.addRows(monthlyData);
+            if (chartData[0] && chartData[0].length === 3) {
+                 data.addColumn('number', 'Receitas');
+                 data.addColumn('number', 'Despesas');
+            } else {
+                 data.addColumn('number', 'Valor');
+            }
+            data.addRows(chartData);
 
             const options = {
-                title: 'Receitas vs. Despesas por Mês',
+                title: title,
                 titleTextStyle: { color: '#4b5563', fontSize: 16 },
                 legend: { position: 'top', textStyle: { color: '#4b5563' } },
                 hAxis: { textStyle: { color: '#4b5563' } },
-                vAxis: { 
-                    format: 'R$ #,##0.00',
-                    textStyle: { color: '#4b5563' } 
-                },
-                colors: ['#10b981', '#ef4444'], // green, red
+                vAxis: { format: 'R$ #,##0.00', textStyle: { color: '#4b5563' } },
+                colors: colors,
                 backgroundColor: 'transparent',
                 chartArea: {width: '85%', height: '70%'}
             };
 
-            const chart = new google.visualization.ColumnChart(document.getElementById('monthly_chart'));
-            chart.draw(data, options);
-        }
-
-        function drawExpenseChart(expenseData) {
-            const data = new google.visualization.DataTable();
-            data.addColumn('string', 'Categoria');
-            data.addColumn('number', 'Valor');
-            data.addRows(expenseData);
-
-            const options = {
-                title: 'Composição das Despesas',
-                titleTextStyle: { color: '#4b5563', fontSize: 16 },
-                legend: { position: 'right', textStyle: { color: '#4b5563' } },
-                pieHole: 0.4,
-                backgroundColor: 'transparent',
-                chartArea: {width: '90%', height: '80%'}
-            };
-
-            const chart = new google.visualization.PieChart(document.getElementById('expense_chart'));
+            const chart = new google.visualization.ColumnChart(document.getElementById(elementId));
             chart.draw(data, options);
         }
     </script>
@@ -131,31 +110,41 @@
 
         <div id="loader" class="text-center text-gray-500 dark:text-gray-400 mb-8">Carregando dashboard...</div>
 
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="kpi-card">
-                <h2 class="kpi-title">Total de Receitas</h2>
-                <p id="kpi-receitas" class="kpi-value text-green-500">R$ 0,00</p>
+        <!-- Seção MDO -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 border-b-2 border-sky-500 pb-2 mb-6">Mão de Obra (MDO)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="kpi-card">
+                    <h3 class="kpi-title">Receitas MDO</h3>
+                    <p id="kpi-mdo-receitas" class="kpi-value text-green-500">R$ 0,00</p>
+                </div>
+                <div class="kpi-card">
+                    <h3 class="kpi-title">Despesas MDO</h3>
+                    <p id="kpi-mdo-despesas" class="kpi-value text-red-500">R$ 0,00</p>
+                </div>
+                <div class="kpi-card">
+                    <h3 class="kpi-title">Saldo MDO</h3>
+                    <p id="kpi-mdo-saldo" class="kpi-value">R$ 0,00</p>
+                </div>
             </div>
-            <div class="kpi-card">
-                <h2 class="kpi-title">Total de Despesas</h2>
-                <p id="kpi-despesas" class="kpi-value text-red-500">R$ 0,00</p>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                <div id="mdo_chart" style="width: 100%; height: 400px;"></div>
             </div>
-            <div class="kpi-card">
-                <h2 class="kpi-title">Saldo Atual</h2>
-                <p id="kpi-saldo" class="kpi-value">R$ 0,00</p>
-            </div>
-        </div>
+        </section>
 
-        <!-- Charts -->
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div class="lg:col-span-3 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                <div id="monthly_chart" style="width: 100%; height: 400px;"></div>
+        <!-- Seção LS/LK -->
+        <section>
+            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 border-b-2 border-indigo-500 pb-2 mb-6">Contas LS/LK</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                 <div class="kpi-card md:col-start-2">
+                    <h3 class="kpi-title">Total Lançado LS/LK</h3>
+                    <p id="kpi-lslk-total" class="kpi-value text-indigo-500">R$ 0,00</p>
+                </div>
             </div>
-            <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                <div id="expense_chart" style="width: 100%; height: 400px;"></div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                <div id="lslk_chart" style="width: 100%; height: 400px;"></div>
             </div>
-        </div>
+        </section>
 
         <div class="mt-8 text-center">
              <a href="index.html" class="text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">&larr; Voltar ao Menu Principal</a>

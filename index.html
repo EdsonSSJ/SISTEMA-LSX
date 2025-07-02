@@ -31,15 +31,12 @@
         // Verifica o estado da autenticação
         firebase.auth().onAuthStateChanged(function(user) {
             if (user) {
-                // Usuário está logado. Mostra a página.
                 document.body.style.display = 'flex';
-                // Adiciona o nome do usuário no cabeçalho (opcional)
                 const userInfoElement = document.getElementById('userInfo');
                 if (userInfoElement) {
                    userInfoElement.textContent = `Olá, ${user.displayName}`;
                 }
             } else {
-                // Nenhum usuário logado. Redireciona para a página de login.
                 const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
                 window.location.href = newUrl;
             }
@@ -68,9 +65,9 @@
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">💸</div>
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Lançamentos de Mão de Obra (MDO)</h2>
             </a>
-            <a href="receitas_lslk.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+            <a href="contas_lslk.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📊</div>
-                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Receitas LS/LK</h2>
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Contas LS/LK</h2>
             </a>
             <a href="dashboard.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📈</div>
@@ -102,11 +99,11 @@
     <script>
         document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-        // Lógica do botão de Sair (Logout)
         const logoutButton = document.getElementById('logoutButton');
         logoutButton.addEventListener('click', () => {
-            firebase.auth().signOut(); // O onAuthStateChanged vai cuidar do redirecionamento
+            firebase.auth().signOut();
         });
     </script>
 </body>
 </html>
+
