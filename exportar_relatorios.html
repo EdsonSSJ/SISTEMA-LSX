@@ -5,37 +5,128 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exportar Relatórios</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        body { font-family: 'Inter', sans-serif; display: none; }
     </style>
-    <style>
-    body { display: none; } /* Esconde o corpo da página por padrão */
-</style>
-<!-- Script de proteção -->
-<script>
-    if (sessionStorage.getItem('loggedIn') !== 'true') {
-        window.location.href = 'login.html';
-    } else {
-        document.addEventListener('DOMContentLoaded', function() {
-            document.body.style.display = 'block'; // Mostra a página se estiver logado
+    <script>
+        const firebaseConfig = {
+          apiKey: "FIREBASE_API_KEY",
+          authDomain: "FIREBASE_AUTH_DOMAIN",
+          projectId: "FIREBASE_PROJECT_ID",
+          storageBucket: "FIREBASE_STORAGE_BUCKET",
+          messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
+          appId: "FIREBASE_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                document.body.style.display = 'block';
+            } else {
+                const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
+                window.location.href = newUrl;
+            }
         });
-    }
-</script>
+    </script>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="container mx-auto bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
-        <header class="mb-6 text-center">
-            <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Exportar Relatórios</h1>
-            <a href="index.html" class="text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 mt-2 inline-block">&larr; Voltar ao Menu Principal</a>
-        </header>
-        <main>
-            <p class="text-gray-700 dark:text-gray-300">
-                Esta seção permitirá a exportação de relatórios consolidados.
-                </p>
-        </main>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div class="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
+        <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8">
+            <header class="mb-8 text-center">
+                <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Exportar Relatórios</h1>
+                <p class="text-gray-500 dark:text-gray-400 mt-2">Selecione um relatório para baixar como arquivo CSV.</p>
+            </header>
+
+            <div class="space-y-4">
+                <!-- As classes do Tailwind foram aplicadas diretamente nos botões -->
+                <button id="export-inventario" class="w-full bg-sky-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-sky-700 transition-colors duration-150 flex items-center justify-center space-x-2 disabled:bg-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                    <span>Exportar Inventário</span>
+                </button>
+                <button id="export-notafiscal" class="w-full bg-sky-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-sky-700 transition-colors duration-150 flex items-center justify-center space-x-2 disabled:bg-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                    <span>Exportar Notas Fiscais</span>
+                </button>
+                 <button id="export-pagamentos" class="w-full bg-sky-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-sky-700 transition-colors duration-150 flex items-center justify-center space-x-2 disabled:bg-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                    <span>Exportar Pagamentos (MDO)</span>
+                </button>
+                 <button id="export-receitaslslk" class="w-full bg-sky-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-sky-700 transition-colors duration-150 flex items-center justify-center space-x-2 disabled:bg-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                    <span>Exportar Contas LS/LK</span>
+                </button>
+                 <button id="export-contratos" class="w-full bg-sky-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-sky-700 transition-colors duration-150 flex items-center justify-center space-x-2 disabled:bg-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                    <span>Exportar Contratos</span>
+                </button>
+            </div>
+            
+            <div id="statusMessage" class="mt-6 text-center text-sm font-medium"></div>
+
+            <div class="mt-8 text-center">
+                 <a href="index.html" class="text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">&larr; Voltar ao Menu Principal</a>
+            </div>
+        </div>
     </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYrYqP7HI-SBlYLsCPegvlguHX5lVmKgaLGf1L7nIsqlJcpVOeXXnSW1PZPF53rtVW/exec";
+        
+        function downloadCSV(sheetName, buttonId) {
+            const button = document.getElementById(buttonId);
+            const originalText = button.querySelector('span').textContent;
+            const statusMessage = document.getElementById('statusMessage');
+
+            button.disabled = true;
+            button.querySelector('span').textContent = 'Gerando...';
+            statusMessage.textContent = `Preparando o relatório de ${sheetName}...`;
+            statusMessage.className = 'mt-6 text-center text-sm font-medium text-sky-600';
+
+            fetch(`${SCRIPT_URL}?action=getCSV&sheet=${sheetName}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('A resposta da rede não foi OK');
+                    }
+                    return response.text();
+                })
+                .then(csv => {
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    const url = URL.createObjectURL(blob);
+                    
+                    const filename = `${sheetName.toLowerCase()}_${new Date().toISOString().slice(0,10)}.csv`;
+                    
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", filename);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    statusMessage.textContent = `Relatório "${filename}" baixado com sucesso!`;
+                    statusMessage.className = 'mt-6 text-center text-sm font-medium text-green-600';
+                })
+                .catch(error => {
+                    console.error('Erro ao exportar:', error);
+                    statusMessage.textContent = 'Ocorreu um erro ao gerar o relatório.';
+                    statusMessage.className = 'mt-6 text-center text-sm font-medium text-red-500';
+                })
+                .finally(() => {
+                    button.disabled = false;
+                    button.querySelector('span').textContent = originalText;
+                    setTimeout(() => { statusMessage.textContent = ''; }, 5000);
+                });
+        }
+
+        document.getElementById('export-inventario').addEventListener('click', () => downloadCSV('Inventario', 'export-inventario'));
+        document.getElementById('export-notafiscal').addEventListener('click', () => downloadCSV('NotasFiscais', 'export-notafiscal'));
+        document.getElementById('export-pagamentos').addEventListener('click', () => downloadCSV('Pagamentos', 'export-pagamentos'));
+        document.getElementById('export-receitaslslk').addEventListener('click', () => downloadCSV('Receitas_LS_LK', 'export-receitaslslk'));
+        document.getElementById('export-contratos').addEventListener('click', () => downloadCSV('Contratos', 'export-contratos'));
+    </script>
 </body>
 </html>
