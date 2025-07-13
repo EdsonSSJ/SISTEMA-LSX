@@ -59,14 +59,25 @@
                 <input type="hidden" name="formType" value="novoContrato">
                 <input type="hidden" name="usuarioEmail" id="usuarioEmail" value="">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label for="numero_contrato" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nº do Contrato</label>
-                        <input type="text" name="numero_contrato" id="numero_contrato" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <input type="text" name="numero_contrato" id="numero_contrato" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
+                    </div>
+                    <div>
+                        <label for="empresa" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Empresa</label>
+                        <select name="empresa" id="empresa" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
+                            <option value="" disabled selected>-- Selecione uma Empresa --</option>
+                            <option value="ConectaServ">ConectaServ</option>
+                            <option value="GN Nordeste">GN Nordeste</option>
+                            <option value="Level UP">Level UP</option>
+                            <option value="Metropolitana">Metropolitana</option>
+                            <option value="Solução Ágil">Solução Ágil</option>
+                        </select>
                     </div>
                     <div class="relative">
                         <label for="municipio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Município</label>
-                        <input autocomplete="off" name="municipio" id="municipio" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <input autocomplete="off" name="municipio" id="municipio" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
                         <div id="municipios-lista" class="autocomplete-items"></div>
                     </div>
                 </div>
@@ -74,20 +85,20 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label for="valor_global" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor Global (R$)</label>
-                        <input type="text" name="valor_global" id="valor_global" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" placeholder="0,00" required>
+                        <input type="text" name="valor_global" id="valor_global" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" placeholder="0,00" required>
                     </div>
                     <div>
                         <label for="data_inicio" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data de Início</label>
-                        <input type="date" name="data_inicio" id="data_inicio" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <input type="date" name="data_inicio" id="data_inicio" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
                     </div>
                      <div>
                         <label for="validade" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Validade (meses)</label>
-                        <input type="number" name="validade" id="validade" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <input type="number" name="validade" id="validade" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
                     </div>
                 </div>
                 
                 <div class="pt-4">
-                    <button type="submit" id="submitButton" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">Adicionar Contrato</button>
+                    <button type="submit" id="submitButton" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700">Adicionar Contrato</button>
                 </div>
             </form>
             <div id="statusMessage" class="mt-6 text-center text-sm font-medium"></div>
@@ -104,6 +115,7 @@
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
                             <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nº Contrato</th>
+                            <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Empresa</th>
                             <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Valor Global</th>
                             <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Valor Gasto (NFs)</th>
                             <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Saldo Remanescente</th>
@@ -134,7 +146,7 @@
             document.getElementById('data_inicio').valueAsDate = new Date();
             submitButton.disabled = false;
             submitButton.textContent = 'Adicionar Contrato';
-            fetchContractData(); // Atualiza a tabela após adicionar
+            fetchContractData(); 
             
             setTimeout(() => { statusMessage.textContent = ''; }, 5000);
         });
@@ -176,7 +188,8 @@
                         const saldoClass = row.SaldoRemanescente < 0 ? 'text-red-500' : 'text-green-500';
 
                         tr.innerHTML = `
-                            <td class="table-cell text-gray-900 dark:text-white">${row.NumeroContrato}</td>
+                            <td class="table-cell text-gray-900 dark:text-white font-semibold">${row.NumeroContrato}</td>
+                            <td class="table-cell text-gray-500 dark:text-gray-300">${row.Empresa}</td>
                             <td class="table-cell text-gray-500 dark:text-gray-300">${formatCurrency(row.ValorGlobal)}</td>
                             <td class="table-cell text-gray-500 dark:text-gray-300">${formatCurrency(row.ValorGasto)}</td>
                             <td class="table-cell font-semibold ${saldoClass}">${formatCurrency(row.SaldoRemanescente)}</td>
@@ -193,23 +206,19 @@
                 });
         }
         
-        // --- Lógica para Autocomplete dos Municípios ---
         const municipioInput = document.getElementById('municipio');
         const suggestionsList = document.getElementById('municipios-lista');
         let municipios = [];
 
         fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome')
             .then(response => response.json())
-            .then(data => {
-                municipios = data.map(municipio => municipio.nome);
-            })
+            .then(data => { municipios = data.map(m => m.nome); })
             .catch(error => console.error('Erro ao buscar municípios:', error));
 
         municipioInput.addEventListener('input', function() {
             const inputText = this.value.toLowerCase();
             suggestionsList.innerHTML = '';
             if (!inputText) return;
-
             const suggestions = municipios.filter(m => m.toLowerCase().startsWith(inputText));
             suggestions.forEach(suggestion => {
                 const item = document.createElement('div');

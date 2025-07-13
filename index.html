@@ -25,41 +25,32 @@
        
         firebase.initializeApp(firebaseConfig);
 
-        // Função que lê as permissões e mostra/esconde os módulos
         function applyPermissions() {
-            // Tenta pegar as permissões salvas na sessão do navegador
             const permissionsString = sessionStorage.getItem('userPermissions');
             if (!permissionsString) {
-                // Se não encontrar as permissões, desloga por segurança
                 firebase.auth().signOut(); 
                 return;
             }
 
             const permissions = JSON.parse(permissionsString);
 
-            // Passa por cada item do menu que tem o atributo 'data-module'
             document.querySelectorAll('[data-module]').forEach(item => {
                 const moduleName = item.getAttribute('data-module');
-                // Se a permissão para este módulo não for 'true', adiciona a classe 'hidden' para escondê-lo
                 if (permissions[moduleName] !== true) {
                     item.classList.add('hidden');
                 }
             });
         }
 
-        // Verifica o estado da autenticação
         firebase.auth().onAuthStateChanged(function(user) {
             if (user) {
-                // Usuário está logado.
                 document.body.style.display = 'flex';
                 const userInfoElement = document.getElementById('userInfo');
                 if (userInfoElement) {
                    userInfoElement.textContent = `Olá, ${user.displayName}`;
                 }
-                // Chama a função para aplicar as permissões visuais
                 applyPermissions(); 
             } else {
-                // Nenhum usuário logado. Limpa as permissões e redireciona para o login.
                 sessionStorage.removeItem('userPermissions');
                 const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
                 window.location.href = newUrl;
@@ -78,7 +69,6 @@
         </header>
 
         <main class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <!-- Cada link de módulo agora tem um atributo 'data-module' que corresponde ao nome da coluna na planilha de permissões -->
             <a href="lancamento_nf.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center menu-item" data-module="Acesso_NF">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📄</div>
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Lançamento de Nota Fiscal</h2>
