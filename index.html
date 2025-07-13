@@ -9,10 +9,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            display: none; /* Esconde o corpo até a verificação do login */
-        }
+        body { font-family: 'Inter', sans-serif; display: none; }
+        .menu-item.hidden { display: none; } /* Classe para esconder itens */
     </style>
     <script>
         // Os valores reais serão injetados pelo GitHub Actions
@@ -25,18 +23,44 @@
           appId: "FIREBASE_APP_ID"
         };
        
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
+
+        // Função que lê as permissões e mostra/esconde os módulos
+        function applyPermissions() {
+            // Tenta pegar as permissões salvas na sessão do navegador
+            const permissionsString = sessionStorage.getItem('userPermissions');
+            if (!permissionsString) {
+                // Se não encontrar as permissões, desloga por segurança
+                firebase.auth().signOut(); 
+                return;
+            }
+
+            const permissions = JSON.parse(permissionsString);
+
+            // Passa por cada item do menu que tem o atributo 'data-module'
+            document.querySelectorAll('[data-module]').forEach(item => {
+                const moduleName = item.getAttribute('data-module');
+                // Se a permissão para este módulo não for 'true', adiciona a classe 'hidden' para escondê-lo
+                if (permissions[moduleName] !== true) {
+                    item.classList.add('hidden');
+                }
+            });
+        }
 
         // Verifica o estado da autenticação
         firebase.auth().onAuthStateChanged(function(user) {
             if (user) {
+                // Usuário está logado.
                 document.body.style.display = 'flex';
                 const userInfoElement = document.getElementById('userInfo');
                 if (userInfoElement) {
                    userInfoElement.textContent = `Olá, ${user.displayName}`;
                 }
+                // Chama a função para aplicar as permissões visuais
+                applyPermissions(); 
             } else {
+                // Nenhum usuário logado. Limpa as permissões e redireciona para o login.
+                sessionStorage.removeItem('userPermissions');
                 const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
                 window.location.href = newUrl;
             }
@@ -50,60 +74,51 @@
                  <h1 class="text-2xl sm:text-4xl font-bold text-sky-600 dark:text-sky-400">Sistema Financeiro LSX</h1>
                  <p id="userInfo" class="text-sm text-gray-500 dark:text-gray-400 mt-1"></p>
             </div>
-            <button id="logoutButton" class="absolute top-1/2 -translate-y-1/2 right-0 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-150 text-sm">
-                Sair
-            </button>
+            <button id="logoutButton" class="absolute top-1/2 -translate-y-1/2 right-0 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow">Sair</button>
         </header>
 
         <main class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <!-- Menus... -->
-            <a href="lancamento_nf.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+            <!-- Cada link de módulo agora tem um atributo 'data-module' que corresponde ao nome da coluna na planilha de permissões -->
+            <a href="lancamento_nf.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center menu-item" data-module="Acesso_NF">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📄</div>
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Lançamento de Nota Fiscal</h2>
             </a>
-            <a href="despesas_receitas_mdo.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+            <a href="despesas_receitas_mdo.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center menu-item" data-module="Acesso_MDO">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">💸</div>
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Lançamentos de Mão de Obra (MDO)</h2>
             </a>
-            <a href="contas_lslk.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+            <a href="contas_lslk.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center menu-item" data-module="Acesso_ContasLSLK">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📊</div>
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Contas LS/LK</h2>
             </a>
-            <a href="dashboard.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+            <a href="dashboard.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center menu-item" data-module="Acesso_Dashboard">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📈</div>
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Dashboard</h2>
             </a>
-            <a href="saldos_contratuais.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+            <a href="saldos_contratuais.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center menu-item" data-module="Acesso_Contratos">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📜</div>
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Saldos Contratuais</h2>
             </a>
-            <a href="https://drive.google.com/drive/folders/1Ip_0rpFVa7_l35RrC83mvicXh8rP94OI?usp=drive_link" target="_blank" rel="noopener noreferrer" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+            <a href="https://drive.google.com/drive/folders/1Ip_0rpFVa7_l35RrC83mvicXh8rP94OI?usp=drive_link" target="_blank" rel="noopener noreferrer" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center menu-item" data-module="Acesso_Documentos">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">☁️</div>
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Documentos na Nuvem</h2>
             </a>
-            <a href="inventario.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+            <a href="inventario.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center menu-item" data-module="Acesso_Inventario">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📦</div>
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Inventário</h2>
             </a>
-            <a href="exportar_relatorios.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+            <a href="exportar_relatorios.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center menu-item" data-module="Acesso_Exportar">
                 <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📤</div>
                 <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Exportar Relatórios</h2>
             </a>
         </main>
-
         <footer class="mt-10 text-center text-gray-500 dark:text-gray-400 text-sm">
             <p>&copy; <span id="currentYear"></span> Seu Nome/Empresa. Todos os direitos reservados.</p>
         </footer>
     </div>
-
     <script>
         document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-        const logoutButton = document.getElementById('logoutButton');
-        logoutButton.addEventListener('click', () => {
-            firebase.auth().signOut();
-        });
+        document.getElementById('logoutButton').addEventListener('click', () => firebase.auth().signOut() );
     </script>
 </body>
 </html>
-
