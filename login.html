@@ -3,86 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistema Financeiro LSX</title>
+    <title>Sistema Financeiro LSX</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.js"></script>
-    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.8.1/firebase-ui-auth.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+    <script>
+        // Os valores reais serão injetados pelo GitHub Actions
+        const firebaseConfig = {
+          apiKey: "FIREBASE_API_KEY",
+          authDomain: "FIREBASE_AUTH_DOMAIN",
+          projectId: "FIREBASE_PROJECT_ID",
+          storageBucket: "FIREBASE_STORAGE_BUCKET",
+          messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
+          appId: "FIREBASE_APP_ID"
+        };
+       
+        firebase.initializeApp(firebaseConfig);
+
+        // Verifica o estado da autenticação
+        firebase.auth().onAuthStateChanged(function(user) {
+            // MODO DE DESENVOLVIMENTO: Login desativado.
+            // Para reativar, remova os comentários (/* e */) e as 4 linhas abaixo.
+            document.body.style.display = 'flex';
+            const userInfoElement = document.getElementById('userInfo');
+            if (userInfoElement) {
+               userInfoElement.textContent = 'Modo de Desenvolvimento';
+            }
+            
+            /* CÓDIGO ORIGINAL (Reativar depois)
+            if (user) {
+                // Usuário está logado. Mostra a página.
+                document.body.style.display = 'flex';
+                const userInfoElement = document.getElementById('userInfo');
+                if (userInfoElement) {
+                   userInfoElement.textContent = `Olá, ${user.displayName}`;
+                }
+            } else {
+                // Nenhum usuário logado. Redireciona para a página de login.
+                const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
+                window.location.href = newUrl;
+            }
+            */
+        });
+    </script>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900">
-    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-10 rounded-xl shadow-xl">
-            <div>
-                <h2 class="mt-6 text-center text-3xl font-extrabold text-sky-600 dark:text-sky-400">
-                    Sistema Financeiro LSX
-                </h2>
-                <p id="login-message" class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-                    Faça login para continuar
-                </p>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen flex-col items-center justify-center p-4">
+    <div class="container mx-auto">
+        <header class="mb-10 text-center relative py-4">
+            <div class="flex flex-col items-center justify-center">
+                 <h1 class="text-2xl sm:text-4xl font-bold text-sky-600 dark:text-sky-400">Sistema Financeiro LSX</h1>
+                 <p id="userInfo" class="text-sm text-gray-500 dark:text-gray-400 mt-1"></p>
             </div>
-            <div id="firebaseui-auth-container"></div>
-            <div id="loader" class="text-center">Carregando...</div>
-        </div>
+            <!-- Botão de Sair oculto em modo de desenvolvimento -->
+            <!-- <button id="logoutButton" class="absolute top-1/2 -translate-y-1/2 right-0 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors duration-150 text-sm">Sair</button> -->
+        </header>
+
+        <main class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <a href="lancamento_nf.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+                <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📄</div>
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Lançamento de Nota Fiscal</h2>
+            </a>
+            <a href="despesas_receitas_mdo.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+                <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">💸</div>
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Lançamentos de Mão de Obra (MDO)</h2>
+            </a>
+            <a href="contas_lslk.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+                <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📊</div>
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Contas LS/LK</h2>
+            </a>
+            <a href="dashboard.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+                <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📈</div>
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Dashboard</h2>
+            </a>
+            <a href="saldos_contratuais.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+                <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📜</div>
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Saldos Contratuais</h2>
+            </a>
+            <a href="https://drive.google.com/drive/folders/1Ip_0rpFVa7_l35RrC83mvicXh8rP94OI?usp=drive_link" target="_blank" rel="noopener noreferrer" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+                <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">☁️</div>
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Documentos na Nuvem</h2>
+            </a>
+            <a href="inventario.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+                <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📦</div>
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Inventário</h2>
+            </a>
+            <a href="exportar_relatorios.html" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 hover:shadow-xl cursor-pointer">
+                <div class="text-4xl mb-3 text-sky-500 dark:text-sky-400">📤</div>
+                <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200">Exportar Relatórios</h2>
+            </a>
+        </main>
+
+        <footer class="mt-10 text-center text-gray-500 dark:text-gray-400 text-sm">
+            <p>&copy; <span id="currentYear"></span> Seu Nome/Empresa. Todos os direitos reservados.</p>
+        </footer>
     </div>
 
     <script>
-        // COLE O OBJETO firebaseConfig AQUI
-        const firebaseConfig = {
-            apiKey: "FIREBASE_API_KEY",
-            authDomain: "FIREBASE_AUTH_DOMAIN",
-            projectId: "FIREBASE_PROJECT_ID",
-            storageBucket: "FIREBASE_STORAGE_BUCKET",
-            messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
-            appId: "FIREBASE_APP_ID"
-        };
-        
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYrYqP7HI-SBlYLsCPegvlguHX5lVmKgaLGf1L7nIsqlJcpVOeXXnSW1PZPF53rtVW/exec";
-
-        firebase.initializeApp(firebaseConfig);
-
-        const uiConfig = {
-            callbacks: {
-                signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-                    const user = authResult.user;
-                    const loginMessage = document.getElementById('login-message');
-                    
-                    loginMessage.textContent = 'Verificando permissões...';
-                    
-                    // Pergunta ao backend quais são as permissões deste usuário
-                    fetch(`${SCRIPT_URL}?action=getUserPermissions&email=${user.email}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.authorized) {
-                                // Salva as permissões na sessão do navegador
-                                sessionStorage.setItem('userPermissions', JSON.stringify(data.permissions));
-                                window.location.href = 'index.html';
-                            } else {
-                                loginMessage.textContent = 'Acesso negado. Seu e-mail não está autorizado.';
-                                loginMessage.classList.add('text-red-500');
-                                firebase.auth().signOut();
-                            }
-                        })
-                        .catch(error => {
-                            loginMessage.textContent = 'Erro ao verificar permissão. Tente novamente.';
-                            loginMessage.classList.add('text-red-500');
-                            firebase.auth().signOut();
-                        });
-
-                    return false;
-                },
-                uiShown: function() {
-                    document.getElementById('loader').style.display = 'none';
-                }
-            },
-            signInFlow: 'popup',
-            signInOptions: [ firebase.auth.GoogleAuthProvider.PROVIDER_ID ],
-        };
-
-        const ui = new firebaseui.auth.AuthUI(firebase.auth());
-        ui.start('#firebaseui-auth-container', uiConfig);
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        /*
+        const logoutButton = document.getElementById('logoutButton');
+        logoutButton.addEventListener('click', () => {
+            firebase.auth().signOut();
+        });
+        */
     </script>
 </body>
 </html>
