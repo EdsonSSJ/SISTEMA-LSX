@@ -5,37 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lançamentos de Mão de Obra (MDO)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; display: none; }
-    </style>
-    <script>
-        
-        const firebaseConfig = {
-            apiKey: "FIREBASE_API_KEY",
-            authDomain: "FIREBASE_AUTH_DOMAIN",
-            projectId: "FIREBASE_PROJECT_ID",
-            storageBucket: "FIREBASE_STORAGE_BUCKET",
-            messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
-            appId: "FIREBASE_APP_ID"
-        };
-        /*
-        firebase.initializeApp(firebaseConfig);
-
-        firebase.auth().onAuthStateChanged(function(user) {
-            if (user) {
-                // Usuário está logado. Guarda os dados e mostra a página.
-                document.getElementById('usuarioEmail').value = user.email;
-                document.body.style.display = 'block';
-            } else {
-                // Nenhum usuário logado. Redireciona para o login.
-                const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
-                window.location.href = newUrl;
-            }
-        });*/
-    </script>
+    <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900">
     <div class="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
@@ -55,18 +26,16 @@
                 
                 <input type="hidden" name="formType" value="lancamentoGeral">
                 <input type="hidden" name="tipo_lancamento" value="MDO">
-                <!-- Campo oculto para enviar o email do usuário -->
-                <input type="hidden" name="usuarioEmail" id="usuarioEmail" value="">
+                <input type="hidden" name="usuarioEmail" value="dev-mode">
 
-                <!-- Restante do formulário... -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="descricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descrição</label>
-                        <input type="text" name="descricao" id="descricao" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" placeholder="Ex: Salário, Pagamento de serviço" required>
+                        <input type="text" name="descricao" id="descricao" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" placeholder="Ex: Salário, Pagamento de serviço" required>
                     </div>
                     <div>
                         <label for="categoria" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Categoria</label>
-                        <select name="categoria" id="categoria" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <select name="categoria" id="categoria" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
                             <option value="Despesa">Despesa</option>
                             <option value="Receita">Receita</option>
                         </select>
@@ -76,26 +45,26 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="data" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data</label>
-                        <input type="date" name="data" id="data" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" required>
+                        <input type="date" name="data" id="data" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" required>
                     </div>
                     <div>
                         <label for="valor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valor (R$)</label>
-                        <input type="text" name="valor" id="valor" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" placeholder="0,00" required>
+                        <input type="text" name="valor" id="valor" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" placeholder="0,00" required>
                     </div>
                 </div>
                 
                 <div>
                     <label for="centro_custo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Centro de Custo / Município</label>
-                    <input type="text" name="centro_custo" id="centro_custo" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200" placeholder="Ex: Obra Y, Lauro de Freitas">
+                    <input type="text" name="centro_custo" id="centro_custo" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm" placeholder="Ex: Obra Y, Lauro de Freitas">
                 </div>
                 
                 <div>
                     <label for="observacoes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Observações (Opcional)</label>
-                    <textarea name="observacoes" id="observacoes" rows="3" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm text-gray-900 dark:text-gray-200"></textarea>
+                    <textarea name="observacoes" id="observacoes" rows="3" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm"></textarea>
                 </div>
 
                 <div class="pt-4">
-                    <button type="submit" id="submitButton" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">Registrar Lançamento</button>
+                    <button type="submit" id="submitButton" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700">Registrar Lançamento</button>
                 </div>
             </form>
             
@@ -106,6 +75,42 @@
             </div>
         </div>
     </div>
-    <!-- Scripts dos formulários -->
+    <script>
+        const form = document.getElementById('lancamentoForm');
+        const statusMessage = document.getElementById('statusMessage');
+        const submitButton = document.getElementById('submitButton');
+        const hiddenIframe = document.getElementById('hidden_iframe_geral');
+
+        hiddenIframe.addEventListener('load', () => {
+            statusMessage.textContent = 'Lançamento registrado com sucesso!';
+            statusMessage.className = 'mt-6 text-center text-sm font-medium text-green-600';
+            form.reset();
+            document.getElementById('data').valueAsDate = new Date();
+            submitButton.disabled = false;
+            submitButton.textContent = 'Registrar Lançamento';
+            
+            setTimeout(() => {
+                statusMessage.textContent = '';
+            }, 5000);
+        });
+
+        form.addEventListener('submit', () => {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+            statusMessage.textContent = '';
+        });
+
+        const valorInput = document.getElementById('valor');
+        valorInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            value = (value / 100).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).replace('R$', '').trim();
+            e.target.value = value;
+        });
+
+        document.getElementById('data').valueAsDate = new Date();
+    </script>
 </body>
 </html>

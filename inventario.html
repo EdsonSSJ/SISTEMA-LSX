@@ -5,40 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Inventário</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; display: none; }
-        .table-cell { @apply px-6 py-4 whitespace-nowrap text-sm; }
+        body { font-family: 'Inter', sans-serif; }
         .autocomplete-items { position: absolute; border: 1px solid #d1d5db; border-top: none; z-index: 99; top: 100%; left: 0; right: 0; max-height: 210px; overflow-y: auto; }
         .autocomplete-items div { padding: 10px; cursor: pointer; background-color: #fff; }
         .autocomplete-items div:hover { background-color: #e5e7eb; }
     </style>
-    <script>
-        // COLE O SEU OBJETO firebaseConfig AQUI
-        const firebaseConfig = {
-          apiKey: "FIREBASE_API_KEY",
-          authDomain: "FIREBASE_AUTH_DOMAIN",
-          projectId: "FIREBASE_PROJECT_ID",
-          storageBucket: "FIREBASE_STORAGE_BUCKET",
-          messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
-          appId: "FIREBASE_APP_ID"
-        };
-/*
-        firebase.initializeApp(firebaseConfig);
-
-        firebase.auth().onAuthStateChanged(function(user) {
-            if (user) {
-                document.getElementById('usuarioEmail').value = user.email;
-                document.body.style.display = 'block';
-                fetchInventoryData();
-            } else {
-                const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
-                window.location.href = newUrl;
-            }
-        });*/
-    </script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900">
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -57,7 +30,7 @@
                   class="space-y-6">
                 
                 <input type="hidden" name="formType" value="novoItemInventario">
-                <input type="hidden" name="usuarioEmail" id="usuarioEmail" value="">
+                <input type="hidden" name="usuarioEmail" value="dev-mode">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -122,13 +95,10 @@
             <div id="statusMessage" class="mt-6 text-center text-sm font-medium"></div>
         </div>
 
-        <!-- Tabela de Itens do Inventário -->
         <div class="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-8">
             <header class="mb-8 text-center">
                 <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Itens Registrados</h1>
             </header>
-
-            <!-- Filtros de Pesquisa -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 items-end">
                 <div>
                     <label for="searchDescricao" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Pesquisar por Descrição</label>
@@ -149,20 +119,18 @@
                     <button id="clearButton" class="w-full flex justify-center py-2 px-4 border rounded-md shadow-sm text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300">Limpar</button>
                 </div>
             </div>
-
             <div id="table-loader" class="text-center text-gray-500 dark:text-gray-400">Carregando inventário...</div>
             <div class="overflow-x-auto">
                 <table id="inventoryTable" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 hidden">
                     <thead class="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                            <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nº Item</th>
-                            <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Descrição</th>
-                            <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Responsável</th>
-                            <th scope="col" class="table-cell text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-4 whitespace-nowrap text-sm text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nº Item</th>
+                            <th scope="col" class="px-6 py-4 whitespace-nowrap text-sm text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Descrição</th>
+                            <th scope="col" class="px-6 py-4 whitespace-nowrap text-sm text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Responsável</th>
+                            <th scope="col" class="px-6 py-4 whitespace-nowrap text-sm text-left font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                         </tr>
                     </thead>
                     <tbody id="inventoryTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        <!-- Linhas serão inseridas aqui via JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -171,15 +139,15 @@
              <a href="index.html" class="text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">&larr; Voltar ao Menu Principal</a>
         </div>
     </div>
-
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYrYqP7HI-SBlYLsCPegvlguHX5lVmKgaLGf1L7nIsqlJcpVOeXXnSW1PZPF53rtVW/exec";
         const form = document.getElementById('inventoryForm');
         const statusMessage = document.getElementById('statusMessage');
         const submitButton = document.getElementById('submitButton');
         const hiddenIframe = document.getElementById('hidden_iframe_inventario');
-        
-        let fullInventoryData = []; // Armazena todos os dados para filtrar no cliente
+        let fullInventoryData = [];
+
+        document.addEventListener('DOMContentLoaded', fetchInventoryData);
 
         hiddenIframe.addEventListener('load', () => {
             statusMessage.textContent = 'Item adicionado com sucesso!';
@@ -187,7 +155,7 @@
             form.reset();
             submitButton.disabled = false;
             submitButton.textContent = 'Adicionar Item';
-            fetchInventoryData(); // Atualiza a tabela após adicionar
+            fetchInventoryData();
             
             setTimeout(() => { statusMessage.textContent = ''; }, 5000);
         });
@@ -213,8 +181,8 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) throw new Error(data.error);
-                    fullInventoryData = data; // Salva os dados completos
-                    displayInventory(fullInventoryData); // Exibe todos os dados inicialmente
+                    fullInventoryData = data;
+                    displayInventory(fullInventoryData);
                 })
                 .catch(error => {
                     tableLoader.textContent = `Erro ao carregar inventário: ${error.message}`;
@@ -238,10 +206,10 @@
             data.forEach(row => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="table-cell font-semibold text-gray-900 dark:text-white">${row.NumeroItem}</td>
-                    <td class="table-cell text-gray-500 dark:text-gray-300">${row.Descricao}</td>
-                    <td class="table-cell text-gray-500 dark:text-gray-300">${row.Responsavel}</td>
-                    <td class="table-cell text-gray-500 dark:text-gray-300">${row.Status}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">${row.NumeroItem}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${row.Descricao}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${row.Responsavel}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">${row.Status}</td>
                 `;
                 tableBody.appendChild(tr);
             });
@@ -250,7 +218,6 @@
             table.classList.remove('hidden');
         }
         
-        // Lógica dos filtros
         document.getElementById('searchButton').addEventListener('click', () => {
             const searchDescricao = document.getElementById('searchDescricao').value.toLowerCase();
             const filterStatus = document.getElementById('filterStatus').value;
@@ -267,10 +234,9 @@
         document.getElementById('clearButton').addEventListener('click', () => {
             document.getElementById('searchDescricao').value = '';
             document.getElementById('filterStatus').value = '';
-            displayInventory(fullInventoryData); // Exibe a lista completa novamente
+            displayInventory(fullInventoryData);
         });
 
-        // --- Lógica para Autocomplete das Cidades ---
         const cidadeInput = document.getElementById('cidade');
         const suggestionsList = document.getElementById('cidades-lista');
         let cidades = [];

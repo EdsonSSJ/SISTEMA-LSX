@@ -1,43 +1,17 @@
-<!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lançamento de Contas LS/LK</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; display: none; }
+        body { font-family: 'Inter', sans-serif; }
         .autocomplete-items { position: absolute; border: 1px solid #d1d5db; border-top: none; z-index: 99; top: 100%; left: 0; right: 0; max-height: 210px; overflow-y: auto; }
         .autocomplete-items div { padding: 10px; cursor: pointer; background-color: #fff; }
         .autocomplete-items div:hover { background-color: #e5e7eb; }
     </style>
-    <script>
-        // COLE O SEU OBJETO firebaseConfig AQUI
-        const firebaseConfig = {
-          apiKey: "FIREBASE_API_KEY",
-          authDomain: "FIREBASE_AUTH_DOMAIN",
-          projectId: "FIREBASE_PROJECT_ID",
-          storageBucket: "FIREBASE_STORAGE_BUCKET",
-          messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
-          appId: "FIREBASE_APP_ID"
-        };
-
-        /*firebase.initializeApp(firebaseConfig);
-
-        firebase.auth().onAuthStateChanged(function(user) {
-            if (user) {
-                document.getElementById('usuarioEmail').value = user.email;
-                document.body.style.display = 'block';
-            } else {
-                const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
-                window.location.href = newUrl;
-            }
-        });
-        */
-    </script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900">
     <div class="container mx-auto max-w-2xl p-4 sm:p-6 lg:p-8">
@@ -56,7 +30,7 @@
                   class="space-y-6">
                 
                 <input type="hidden" name="formType" value="receitaLSLK">
-                <input type="hidden" name="usuarioEmail" id="usuarioEmail" value="">
+                <input type="hidden" name="usuarioEmail" value="dev-mode">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>

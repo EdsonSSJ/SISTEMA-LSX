@@ -5,39 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Financeiro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; display: none; }
+        body { font-family: 'Inter', sans-serif; }
         .kpi-card { @apply bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg text-center; }
         .kpi-title { @apply text-sm font-medium text-gray-500 dark:text-gray-400 uppercase; }
         .kpi-value { @apply mt-1 text-2xl font-semibold text-gray-900 dark:text-white; }
     </style>
-    <script>
-        // COLE O SEU OBJETO firebaseConfig AQUI
-        const firebaseConfig = {
-          apiKey: "FIREBASE_API_KEY",
-          authDomain: "FIREBASE_AUTH_DOMAIN",
-          projectId: "FIREBASE_PROJECT_ID",
-          storageBucket: "FIREBASE_STORAGE_BUCKET",
-          messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
-          appId: "FIREBASE_APP_ID"
-        };
-/*
-        firebase.initializeApp(firebaseConfig);
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Dashboard Financeiro</h1>
+        </header>
 
-        firebase.auth().onAuthStateChanged(function(user) {
-            if (user) {
-                document.body.style.display = 'block';
-                fetchDashboardData();
-            } else {
-                const newUrl = window.location.href.replace(/[^/]*$/, 'login.html');
-                window.location.href = newUrl;
-            }
-        });
-*/
+        <div id="loader" class="text-center text-gray-500 dark:text-gray-400 mb-8">Carregando dashboard...</div>
+
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 border-b-2 border-sky-500 pb-2 mb-6">Mão de Obra (MDO)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="kpi-card">
+                    <h3 class="kpi-title">Receitas MDO</h3>
+                    <p id="kpi-mdo-receitas" class="kpi-value text-green-500">R$ 0,00</p>
+                </div>
+                <div class="kpi-card">
+                    <h3 class="kpi-title">Despesas MDO</h3>
+                    <p id="kpi-mdo-despesas" class="kpi-value text-red-500">R$ 0,00</p>
+                </div>
+                <div class="kpi-card">
+                    <h3 class="kpi-title">Saldo MDO</h3>
+                    <p id="kpi-mdo-saldo" class="kpi-value">R$ 0,00</p>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                <div id="mdo_chart" style="width: 100%; height: 400px;"></div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 border-b-2 border-indigo-500 pb-2 mb-6">Contas LS/LK</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                 <div class="kpi-card md:col-start-2">
+                    <h3 class="kpi-title">Total Lançado LS/LK</h3>
+                    <p id="kpi-lslk-total" class="kpi-value text-indigo-500">R$ 0,00</p>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                <div id="lslk_chart" style="width: 100%; height: 400px;"></div>
+            </div>
+        </section>
+
+        <div class="mt-8 text-center">
+             <a href="index.html" class="text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">&larr; Voltar ao Menu Principal</a>
+        </div>
+    </div>
+    <script>
         google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(fetchDashboardData);
 
@@ -46,8 +69,6 @@
         }
 
         function fetchDashboardData() {
-            if (!firebase.auth().currentUser) return;
-
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYrYqP7HI-SBlYLsCPegvlguHX5lVmKgaLGf1L7nIsqlJcpVOeXXnSW1PZPF53rtVW/exec";
             document.getElementById('loader').style.display = 'block';
 
@@ -56,15 +77,13 @@
                 .then(data => {
                     if (data.error) throw new Error(data.error);
                     
-                    // Preenche a seção MDO
                     document.getElementById('kpi-mdo-receitas').textContent = formatCurrency(data.mdo.totalReceitas);
                     document.getElementById('kpi-mdo-despesas').textContent = formatCurrency(data.mdo.totalDespesas);
                     document.getElementById('kpi-mdo-saldo').textContent = formatCurrency(data.mdo.saldo);
                     drawChart('mdo_chart', 'Receitas vs. Despesas (MDO)', data.mdo.monthlyData);
 
-                    // Preenche a seção LS/LK
                     document.getElementById('kpi-lslk-total').textContent = formatCurrency(data.lslk.total);
-                    drawChart('lslk_chart', 'Lançamentos por Mês (LS/LK)', data.lslk.monthlyData, ['#4f46e5', '#c084fc']); // Cores diferentes
+                    drawChart('lslk_chart', 'Lançamentos por Mês (LS/LK)', data.lslk.monthlyData, ['#4f46e5', '#c084fc']);
 
                     document.getElementById('loader').style.display = 'none';
                 })
@@ -101,54 +120,5 @@
             chart.draw(data, options);
         }
     </script>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900">
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-sky-600 dark:text-sky-400">Dashboard Financeiro</h1>
-        </header>
-
-        <div id="loader" class="text-center text-gray-500 dark:text-gray-400 mb-8">Carregando dashboard...</div>
-
-        <!-- Seção MDO -->
-        <section class="mb-12">
-            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 border-b-2 border-sky-500 pb-2 mb-6">Mão de Obra (MDO)</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="kpi-card">
-                    <h3 class="kpi-title">Receitas MDO</h3>
-                    <p id="kpi-mdo-receitas" class="kpi-value text-green-500">R$ 0,00</p>
-                </div>
-                <div class="kpi-card">
-                    <h3 class="kpi-title">Despesas MDO</h3>
-                    <p id="kpi-mdo-despesas" class="kpi-value text-red-500">R$ 0,00</p>
-                </div>
-                <div class="kpi-card">
-                    <h3 class="kpi-title">Saldo MDO</h3>
-                    <p id="kpi-mdo-saldo" class="kpi-value">R$ 0,00</p>
-                </div>
-            </div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                <div id="mdo_chart" style="width: 100%; height: 400px;"></div>
-            </div>
-        </section>
-
-        <!-- Seção LS/LK -->
-        <section>
-            <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 border-b-2 border-indigo-500 pb-2 mb-6">Contas LS/LK</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                 <div class="kpi-card md:col-start-2">
-                    <h3 class="kpi-title">Total Lançado LS/LK</h3>
-                    <p id="kpi-lslk-total" class="kpi-value text-indigo-500">R$ 0,00</p>
-                </div>
-            </div>
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                <div id="lslk_chart" style="width: 100%; height: 400px;"></div>
-            </div>
-        </section>
-
-        <div class="mt-8 text-center">
-             <a href="index.html" class="text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">&larr; Voltar ao Menu Principal</a>
-        </div>
-    </div>
 </body>
 </html>
